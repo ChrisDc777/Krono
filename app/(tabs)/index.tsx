@@ -3,12 +3,12 @@ import { useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, FAB, IconButton, Text } from 'react-native-paper';
-import { PlatformBadge } from '../../src/components/ui/PlatformBadge';
-import { SleekCard } from '../../src/components/ui/SleekCard';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { ProfileCard } from '../../src/components/ui/ProfileCard';
+import { TimelineItem } from '../../src/components/ui/TimelineItem';
 import { useContestStore } from '../../src/stores/useContestStore';
 import { useProfileStore } from '../../src/stores/useProfileStore';
 import { colors } from '../../src/theme/colors';
-import { formatContestTime, formatDuration } from '../../src/utils/dateUtils';
 
 export default function DashboardScreen() {
   const router = useRouter();
@@ -29,109 +29,97 @@ export default function DashboardScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={styles.headerTitle}>Krono</Text>
-          <Text style={styles.headerSubtitle}>Master your coding timeline</Text>
+          <Text style={styles.date}>{new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase()}</Text>
+          <Text style={styles.headerTitle}>Dashboard</Text>
         </View>
         <IconButton
-          icon="cog"
-          iconColor={colors.text.secondary}
-          size={24}
+          icon="cog-outline"
+          iconColor={colors.text.primary}
+          size={26}
           onPress={handleGoToSettings}
         />
       </View>
 
       <ScrollView 
         contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={isContestLoading} onRefresh={handleSync} tintColor={colors.primary} />
         }
       >
-        {/* Profile Statistics */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Your Status</Text>
+        {/* Profile Statistics Carousel */}
+        <View style={styles.profilesSection}>
           {profiles.length === 0 ? (
-            <SleekCard variant="bordered" style={styles.emptyState}>
-              <MaterialCommunityIcons name="account-plus" size={40} color={colors.text.muted} />
-              <Text style={styles.emptyText}>Link profiles to track progress</Text>
+            <View style={styles.emptyState}>
+              <MaterialCommunityIcons name="card-account-details-outline" size={48} color={colors.text.muted} />
+              <Text style={styles.emptyText}>Track your progress</Text>
+              <Text style={styles.emptySubText}>Add your coding profiles to get started</Text>
               <FAB
                 icon="plus"
-                label="Connect"
-                style={styles.fab}
-                color={colors.background}
+                label="Connect Profile"
+                style={styles.connectButton}
+                color={colors.text.inverse}
                 onPress={handleGoToSettings}
                 small
               />
-            </SleekCard>
+            </View>
           ) : (
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.profileList}>
+            <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false} 
+                contentContainerStyle={styles.profileList}
+                decelerationRate="fast"
+                snapToInterval={styles.profileList.paddingHorizontal}
+            >
               {profiles.map(profile => (
-                <SleekCard key={profile.id} style={styles.profileCard}>
-                  <View style={styles.profileHeader}>
-                    <PlatformBadge platformId={profile.platformId} size="sm" />
-                    {profile.rank && <Text style={styles.profileRank}>{profile.rank}</Text>}
-                  </View>
-                  <View style={styles.profileBody}>
-                    <Text style={styles.profileRating}>{profile.rating}</Text>
-                    <Text style={styles.profileLabel}>RATING</Text>
-                  </View>
-                  <Text style={styles.profileName} numberOfLines={1}>{profile.displayName}</Text>
-                </SleekCard>
+                <ProfileCard key={profile.id} profile={profile} />
               ))}
+              <View style={styles.addCardPlaceholder}>
+                   <IconButton icon="plus" onPress={handleGoToSettings} iconColor={colors.text.muted} size={30} />
+                   <Text style={styles.addText}>Add</Text>
+              </View>
             </ScrollView>
           )}
         </View>
 
-        {/* Upcoming Contests */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Upcoming</Text>
-            {isContestLoading && <ActivityIndicator size="small" color={colors.primary} />}
-          </View>
+        {/* Timeline Section */}
+        <View style={styles.timelineSection}>
+          <Text style={styles.sectionTitle}>Timeline</Text>
           
-          {upcomingContests.length === 0 ? (
-            <Text style={styles.emptyText}>No contests found. Pull to refresh.</Text>
+          {isContestLoading && upcomingContests.length === 0 ? (
+             <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 20 }} />
+          ) : upcomingContests.length === 0 ? (
+            <View style={styles.emptyTimeline}>
+                 <Text style={styles.emptyText}>No upcoming contests.</Text>
+            </View>
           ) : (
-            upcomingContests.slice(0, 7).map(contest => (
-              <SleekCard key={contest.id} style={styles.contestCard}>
-                <View style={styles.contestRow}>
-                  <View style={styles.contestDateBox}>
-                    <Text style={styles.dateDay}>{contest.startTime.getDate()}</Text>
-                    <Text style={styles.dateMonth}>{contest.startTime.toLocaleString('default', { month: 'short' }).toUpperCase()}</Text>
-                  </View>
-                  
-                  <View style={styles.contestInfo}>
-                    <Text style={styles.contestName} numberOfLines={1}>{contest.name}</Text>
-                    <View style={styles.contestMeta}>
-                      <PlatformBadge platformId={contest.platformId} size="sm" />
-                      <Text style={styles.contestTime}> • {formatContestTime(contest.startTime)}</Text>
-                    </View>
-                  </View>
-                  
-                  <View style={styles.durationBadge}>
-                    <MaterialCommunityIcons name="clock-outline" size={12} color={colors.text.secondary} />
-                    <Text style={styles.durationText}>{formatDuration(contest.durationSeconds)}</Text>
-                  </View>
-                </View>
-              </SleekCard>
-            ))
+            <View style={styles.timelineContainer}>
+              {upcomingContests.slice(0, 10).map((contest, index) => (
+                <TimelineItem 
+                    key={contest.id} 
+                    contest={contest} 
+                    isLast={index === 9 || index === upcomingContests.length - 1} 
+                />
+              ))}
+            </View>
           )}
         </View>
       </ScrollView>
 
-      {/* Quick Sync Button */}
+      {/* Floating Action Button for Sync */}
       {!isContestLoading && (
         <FAB
           icon="refresh"
-          style={styles.syncFab}
+          style={styles.fab}
           onPress={handleSync}
-          color={colors.text.primary}
+          color={colors.text.inverse}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -139,167 +127,99 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    paddingTop: 50,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 24,
-    marginBottom: 24,
+    paddingVertical: 10,
+    marginBottom: 0,
+  },
+  date: {
+      fontSize: 12,
+      color: colors.text.muted,
+      fontWeight: 'bold',
+      letterSpacing: 1,
+      marginBottom: 2
   },
   headerTitle: {
-    fontSize: 32,
-    fontWeight: '800',
+    fontSize: 28,
+    fontWeight: '700',
     color: colors.text.primary,
-    letterSpacing: -1,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: colors.text.secondary,
-    marginTop: -4,
   },
   content: {
     paddingBottom: 80,
   },
-  section: {
+  profilesSection: {
     marginBottom: 32,
-    paddingHorizontal: 24,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-    gap: 10,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.text.primary,
-    marginBottom: 16,
   },
   profileList: {
-    marginHorizontal: -24,
     paddingHorizontal: 24,
+    paddingVertical: 10
   },
-  profileCard: {
-    width: 140,
-    marginRight: 12,
-    height: 140,
-    justifyContent: 'space-between',
+  addCardPlaceholder: {
+      width: 80,
+      height: 170,
+      borderRadius: 24,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderStyle: 'dashed',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginRight: 24
   },
-  profileHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  profileRank: {
-    fontSize: 10,
-    color: colors.secondary,
-    backgroundColor: `${colors.secondary}15`,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    overflow: 'hidden',
-  },
-  profileBody: {
-    alignItems: 'center',
-    marginVertical: 10,
-  },
-  profileRating: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: colors.primary,
-  },
-  profileLabel: {
-    fontSize: 10,
-    color: colors.text.muted,
-    letterSpacing: 1,
-    marginTop: 4,
-  },
-  profileName: {
-    fontSize: 12,
-    color: colors.text.secondary,
-    textAlign: 'center',
+  addText: {
+      color: colors.text.muted,
+      fontSize: 12,
+      marginTop: -10
   },
   emptyState: {
     alignItems: 'center',
-    padding: 24,
-    borderStyle: 'dashed',
-    borderColor: colors.text.disabled,
+    justifyContent: 'center',
+    padding: 32,
+    marginHorizontal: 24,
+    backgroundColor: colors.surface,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   emptyText: {
+    color: colors.text.primary,
+    fontSize: 16,
+    fontWeight: '600',
+    marginTop: 16,
+  },
+  emptySubText: {
     color: colors.text.secondary,
+    textAlign: 'center',
     marginTop: 8,
-    marginBottom: 16,
+    marginBottom: 20
+  },
+  connectButton: {
+      backgroundColor: colors.primary,
+  },
+  timelineSection: {
+      paddingHorizontal: 24,
+  },
+  sectionTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.text.primary,
+      marginBottom: 20,
+  },
+  timelineContainer: {
+     // Container for timeline items
+  },
+  emptyTimeline: {
+      paddingVertical: 20
   },
   fab: {
-    backgroundColor: colors.primary,
-  },
-  syncFab: {
     position: 'absolute',
-    margin: 20,
+    margin: 24,
     right: 0,
     bottom: 0,
-    backgroundColor: colors.surfaceHighlight,
+    backgroundColor: colors.primary,
+    borderRadius: 16,
   },
-  // Contest Styles
-  contestCard: {
-    marginBottom: 12,
-    padding: 12,
-  },
-  contestRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  contestDateBox: {
-    backgroundColor: colors.surfaceHighlight,
-    borderRadius: 12,
-    width: 50,
-    height: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  dateDay: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.text.primary,
-  },
-  dateMonth: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: colors.text.muted,
-  },
-  contestInfo: {
-    flex: 1,
-  },
-  contestName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.text.primary,
-    marginBottom: 6,
-  },
-  contestMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  contestTime: {
-    fontSize: 12,
-    color: colors.text.secondary,
-  },
-  durationBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.background,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    marginLeft: 8,
-  },
-  durationText: {
-    fontSize: 10,
-    color: colors.text.secondary,
-    marginLeft: 4,
-  }
 });

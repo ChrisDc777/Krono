@@ -1,193 +1,195 @@
-import React, { useEffect, useMemo } from 'react';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Dimensions, ScrollView, StyleSheet, View } from 'react-native';
-import { Card, SegmentedButtons, Text } from 'react-native-paper';
+import { SegmentedButtons, Text } from 'react-native-paper';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { SleekCard } from '../../src/components/ui/SleekCard';
 import { useProfileStore } from '../../src/stores/useProfileStore';
 import { colors } from '../../src/theme/colors';
-import { typography } from '../../src/theme/typography';
 import { PLATFORMS } from '../../src/types/platform';
 
-const { width: screenWidth } = Dimensions.get('window');
+// Victory Native (new alpha/beta) API might be different, using standard SVG based Victory Native syntax
+// Wait, 'victory-native' v41 is actually the old one based on react-native-svg (VictoryPie, VictoryChart, etc)
+// But 'victory-native' v41 export is named exports like VictoryPie.
+// Let's check imports carefully. Typically: import { VictoryPie, VictoryChart, ... } from "victory-native";
+
+import { VictoryAxis, VictoryBar, VictoryChart, VictoryLabel, VictoryPie } from 'victory-native';
+
+const screenWidth = Dimensions.get('window').width;
 
 export default function AnalyticsScreen() {
   const { profiles, loadProfiles } = useProfileStore();
-  const [selectedView, setSelectedView] = React.useState('overview');
+  const [selectedView, setSelectedView] = useState('overview');
 
   useEffect(() => {
     loadProfiles();
   }, []);
 
-  // Aggregate stats across all platforms
+  // Aggregate stats
   const aggregateStats = useMemo(() => {
-    const stats = {
-      totalSolved: 0,
-      totalSubmissions: 0,
-      highestRating: 0,
-      platformCount: profiles.length,
-    };
-
-    profiles.forEach(profile => {
-      stats.totalSolved += profile.problemsSolved;
-      stats.totalSubmissions += profile.totalSubmissions;
-      if (profile.rating > stats.highestRating) {
-        stats.highestRating = profile.rating;
-      }
-    });
-
-    return stats;
+    return profiles.reduce((acc, profile) => ({
+      totalSolved: acc.totalSolved + profile.problemsSolved,
+      totalSubmissions: acc.totalSubmissions + profile.totalSubmissions,
+      highestRating: Math.max(acc.highestRating, profile.rating),
+      platformCount: acc.platformCount + 1,
+    }), { totalSolved: 0, totalSubmissions: 0, highestRating: 0, platformCount: 0 });
   }, [profiles]);
 
-  // Platform breakdown data
-  const platformBreakdown = useMemo(() => {
-    return profiles.map(profile => ({
-      platform: PLATFORMS[profile.platformId].name,
-      color: PLATFORMS[profile.platformId].color,
-      solved: profile.problemsSolved,
-      rating: profile.rating,
-    }));
+  // Platform breakdown for charts
+  const pieData = useMemo(() => {
+    return profiles.map(p => ({
+      x: PLATFORMS[p.platformId].name,
+      y: p.problemsSolved,
+      fill: PLATFORMS[p.platformId].color,
+      label: `${p.problemsSolved}`
+    })).filter(d => d.y > 0);
   }, [profiles]);
 
-  if (profiles.length === 0) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyTitle}>No Data Yet</Text>
-          <Text style={styles.emptyText}>
-            Add profiles in Settings to see your analytics here.
-          </Text>
-        </View>
-      </View>
-    );
-  }
+  const barData = useMemo(() => {
+    return profiles.map(p => ({
+      platform: PLATFORMS[p.platformId].name,
+      rating: p.rating,
+      fill: PLATFORMS[p.platformId].color
+    })).filter(d => d.rating > 0);
+  }, [profiles]);
 
   return (
-    <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.headerTitle}>Analytics</Text>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <View style={styles.header}>
+         <Text style={styles.headerTitle}>Analytics</Text>
+         <Text style={styles.headerSubtitle}>Performance insights</Text>
+      </View>
 
-        {/* View Selector */}
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* View Switcher */}
         <SegmentedButtons
           value={selectedView}
           onValueChange={setSelectedView}
           buttons={[
             { value: 'overview', label: 'Overview' },
-            { value: 'platforms', label: 'Platforms' },
+            { value: 'details', label: 'Details' },
           ]}
           style={styles.segmentedButtons}
+          theme={{ colors: { secondaryContainer: colors.primary, onSecondaryContainer: colors.text.primary } }}
         />
 
         {selectedView === 'overview' && (
-          <>
-            {/* Aggregate Stats Cards */}
+          <View style={{ gap: 20 }}>
+            {/* Main Stats Grid */}
             <View style={styles.statsGrid}>
-              <Card style={styles.statCard}>
-                <Card.Content>
-                  <Text style={styles.statValue}>{aggregateStats.totalSolved}</Text>
-                  <Text style={styles.statLabel}>Problems Solved</Text>
-                </Card.Content>
-              </Card>
-              <Card style={styles.statCard}>
-                <Card.Content>
-                  <Text style={styles.statValue}>{aggregateStats.highestRating}</Text>
-                  <Text style={styles.statLabel}>Highest Rating</Text>
-                </Card.Content>
-              </Card>
-              <Card style={styles.statCard}>
-                <Card.Content>
-                  <Text style={styles.statValue}>{aggregateStats.platformCount}</Text>
-                  <Text style={styles.statLabel}>Platforms</Text>
-                </Card.Content>
-              </Card>
-              <Card style={styles.statCard}>
-                <Card.Content>
-                  <Text style={styles.statValue}>{aggregateStats.totalSubmissions}</Text>
-                  <Text style={styles.statLabel}>Total Submissions</Text>
-                </Card.Content>
-              </Card>
+              <LinearGradient colors={[colors.surfaceHighlight, colors.surface]} style={styles.statBox}>
+                 <Text style={styles.statValue}>{aggregateStats.totalSolved}</Text>
+                 <Text style={styles.statLabel}>Total Solved</Text>
+                 <MaterialCommunityIcons name="check-circle-outline" size={20} color={colors.status.success} style={styles.statIcon} />
+              </LinearGradient>
+              
+              <LinearGradient colors={[colors.surfaceHighlight, colors.surface]} style={styles.statBox}>
+                 <Text style={styles.statValue}>{aggregateStats.highestRating}</Text>
+                 <Text style={styles.statLabel}>Best Rating</Text>
+                 <MaterialCommunityIcons name="trophy-outline" size={20} color={colors.accent} style={styles.statIcon} />
+              </LinearGradient>
             </View>
 
-            {/* Problems by Platform */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Problems Solved by Platform</Text>
-              <Card style={styles.chartCard}>
-                <Card.Content>
-                  {platformBreakdown.map((item, index) => (
-                    <View key={index} style={styles.barRow}>
-                      <Text style={styles.barLabel}>{item.platform}</Text>
-                      <View style={styles.barContainer}>
-                        <View 
-                          style={[
-                            styles.bar, 
-                            { 
-                              width: `${Math.min((item.solved / Math.max(...platformBreakdown.map(p => p.solved), 1)) * 100, 100)}%`,
-                              backgroundColor: item.color 
-                            }
-                          ]} 
+            {/* Problem Distribution Chart */}
+            <SleekCard style={styles.chartCard} variant="bordered">
+              <Text style={styles.cardTitle}>Problem Distribution</Text>
+              {pieData.length > 0 ? (
+                <View style={{ alignItems: 'center', marginTop: 10 }}>
+                    <VictoryPie
+                      data={pieData}
+                      width={screenWidth - 80}
+                      height={280}
+                      innerRadius={60}
+                      style={{
+                        labels: { fill: colors.text.secondary, fontSize: 12, fontWeight: 'bold' },
+                        data: { fill: ({ datum }) => datum.fill }
+                      }}
+                      padAngle={2}
+                    />
+                </View>
+              ) : (
+                <Text style={styles.noDataText}>No solved problems data available.</Text>
+              )}
+            </SleekCard>
+
+            {/* Rating Comparison Chart */}
+            <SleekCard style={styles.chartCard} variant="bordered">
+               <Text style={styles.cardTitle}>Current Ratings</Text>
+               {barData.length > 0 ? (
+                 <View style={{ marginLeft: -20, marginTop: 10 }}>
+                    <VictoryChart 
+                        width={screenWidth - 40} 
+                        height={250} 
+                        domainPadding={{ x: 30 }}
+                    >
+                        <VictoryAxis 
+                            style={{ 
+                                tickLabels: { fill: colors.text.secondary, fontSize: 10, angle: 0 }, 
+                                axis: { stroke: colors.border }
+                            }} 
                         />
-                      </View>
-                      <Text style={styles.barValue}>{item.solved}</Text>
-                    </View>
-                  ))}
-                </Card.Content>
-              </Card>
-            </View>
-
-            {/* Ratings Comparison */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Rating Comparison</Text>
-              <Card style={styles.chartCard}>
-                <Card.Content>
-                  {platformBreakdown.map((item, index) => (
-                    <View key={index} style={styles.ratingRow}>
-                      <View style={[styles.ratingDot, { backgroundColor: item.color }]} />
-                      <Text style={styles.ratingPlatform}>{item.platform}</Text>
-                      <Text style={styles.ratingValue}>{item.rating}</Text>
-                    </View>
-                  ))}
-                </Card.Content>
-              </Card>
-            </View>
-          </>
+                        <VictoryAxis 
+                            dependentAxis 
+                            style={{ 
+                                tickLabels: { fill: colors.text.secondary, fontSize: 10 },
+                                grid: { stroke: colors.border, strokeDasharray: '4, 4' },
+                                axis: { stroke: 'transparent' } 
+                            }} 
+                        />
+                        <VictoryBar
+                            data={barData}
+                            x="platform"
+                            y="rating"
+                            style={{ data: { fill: ({ datum }) => datum.fill, width: 25 } }}
+                            cornerRadius={{ top: 6 }}
+                            animate={{ duration: 1000 }}
+                            labels={({ datum }) => datum.rating}
+                            labelComponent={<VictoryLabel dy={-10} style={{ fill: colors.text.primary, fontSize: 10 }} />}
+                        />
+                    </VictoryChart>
+                 </View>
+               ) : (
+                 <Text style={styles.noDataText}>No rating data available.</Text>
+               )}
+            </SleekCard>
+          </View>
         )}
 
-        {selectedView === 'platforms' && (
-          <>
-            {profiles.map(profile => (
-              <Card key={profile.id} style={styles.platformDetailCard}>
-                <Card.Content>
-                  <View style={styles.platformHeader}>
-                    <Text style={[styles.platformName, { color: PLATFORMS[profile.platformId].color }]}>
-                      {PLATFORMS[profile.platformId].name}
-                    </Text>
-                    <Text style={styles.platformUsername}>@{profile.username}</Text>
-                  </View>
-                  
-                  <View style={styles.platformStats}>
-                    <View style={styles.platformStat}>
-                      <Text style={styles.platformStatValue}>{profile.rating}</Text>
-                      <Text style={styles.platformStatLabel}>Rating</Text>
-                    </View>
-                    <View style={styles.platformStat}>
-                      <Text style={styles.platformStatValue}>{profile.maxRating}</Text>
-                      <Text style={styles.platformStatLabel}>Max Rating</Text>
-                    </View>
-                    <View style={styles.platformStat}>
-                      <Text style={styles.platformStatValue}>{profile.problemsSolved}</Text>
-                      <Text style={styles.platformStatLabel}>Solved</Text>
-                    </View>
-                  </View>
+        {selectedView === 'details' && (
+           <View style={{ gap: 16 }}>
+               {profiles.map(profile => (
+                   <SleekCard key={profile.id} style={styles.detailCard}>
+                       <View style={styles.detailHeader}>
+                           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                               <MaterialCommunityIcons name={PLATFORMS[profile.platformId].icon as any} size={24} color={PLATFORMS[profile.platformId].color} />
+                               <Text style={[styles.platformName, { color: PLATFORMS[profile.platformId].color }]}>{PLATFORMS[profile.platformId].name}</Text>
+                           </View>
+                           <Text style={styles.detailUsername}>@{profile.username}</Text>
+                       </View>
 
-                  {profile.rank && (
-                    <View style={styles.rankBadge}>
-                      <Text style={styles.rankText}>{profile.rank}</Text>
-                    </View>
-                  )}
-                </Card.Content>
-              </Card>
-            ))}
-          </>
+                       <View style={styles.detailStatsRow}>
+                            <View style={styles.detailStatItem}>
+                                <Text style={styles.detailValue}>{profile.rating}</Text>
+                                <Text style={styles.detailLabel}>Rating</Text>
+                            </View>
+                             <View style={styles.divider} />
+                             <View style={styles.detailStatItem}>
+                                <Text style={styles.detailValue}>{profile.maxRating}</Text>
+                                <Text style={styles.detailLabel}>Max</Text>
+                            </View>
+                            <View style={styles.divider} />
+                            <View style={styles.detailStatItem}>
+                                <Text style={styles.detailValue}>{profile.problemsSolved}</Text>
+                                <Text style={styles.detailLabel}>Solved</Text>
+                            </View>
+                       </View>
+                   </SleekCard>
+               ))}
+           </View>
         )}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -195,162 +197,124 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-    paddingTop: 50,
   },
-  content: {
-    padding: 20,
-    paddingBottom: 40,
+  header: {
+    paddingHorizontal: 24,
+    paddingVertical: 10,
   },
   headerTitle: {
-    fontSize: typography.size.xxl,
-    fontWeight: 'bold',
+    fontSize: 28,
+    fontWeight: '700',
     color: colors.text.primary,
-    marginBottom: 20,
+  },
+  headerSubtitle: {
+      fontSize: 14,
+      color: colors.text.secondary,
+      marginTop: -2,
+      marginBottom: 10
+  },
+  content: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
   },
   segmentedButtons: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
   statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginBottom: 20,
+      flexDirection: 'row',
+      gap: 12,
+      marginBottom: 20
   },
-  statCard: {
-    backgroundColor: colors.surface,
-    width: '48%',
+  statBox: {
+      flex: 1,
+      borderRadius: 16,
+      padding: 16,
+      alignItems: 'flex-start',
+      position: 'relative',
+      borderWidth: 1,
+      borderColor: colors.border
   },
   statValue: {
-    fontSize: typography.size.xxl,
-    fontWeight: 'bold',
-    color: colors.accent,
+      fontSize: 24,
+      fontWeight: '800',
+      color: colors.text.primary,
+      marginBottom: 4
   },
   statLabel: {
-    fontSize: typography.size.sm,
-    color: colors.text.secondary,
-    marginTop: 4,
+      fontSize: 12,
+      color: colors.text.secondary,
+      textTransform: 'uppercase',
+      letterSpacing: 0.5
   },
-  section: {
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontSize: typography.size.lg,
-    fontWeight: 'bold',
-    color: colors.text.primary,
-    marginBottom: 12,
+  statIcon: {
+      position: 'absolute',
+      right: 12,
+      top: 12,
+      opacity: 0.8
   },
   chartCard: {
-    backgroundColor: colors.surface,
+      padding: 16,
+      marginBottom: 20,
+      alignItems: 'center'
   },
-  barRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
+  cardTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.text.primary,
+      alignSelf: 'flex-start',
+      marginBottom: 10
   },
-  barLabel: {
-    color: colors.text.primary,
-    width: 80,
-    fontSize: typography.size.sm,
+  noDataText: {
+      color: colors.text.muted,
+      marginTop: 20,
+      marginBottom: 20,
+      fontStyle: 'italic'
   },
-  barContainer: {
-    flex: 1,
-    height: 20,
-    backgroundColor: colors.surfaceHighlight,
-    borderRadius: 10,
-    marginHorizontal: 10,
-    overflow: 'hidden',
+  detailCard: {
+      padding: 16,
   },
-  bar: {
-    height: '100%',
-    borderRadius: 10,
-  },
-  barValue: {
-    color: colors.text.secondary,
-    width: 40,
-    textAlign: 'right',
-    fontSize: typography.size.sm,
-  },
-  ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  ratingDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: 10,
-  },
-  ratingPlatform: {
-    flex: 1,
-    color: colors.text.primary,
-  },
-  ratingValue: {
-    color: colors.accent,
-    fontWeight: 'bold',
-    fontSize: typography.size.lg,
-  },
-  platformDetailCard: {
-    backgroundColor: colors.surface,
-    marginBottom: 15,
-  },
-  platformHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 15,
+  detailHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 20,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      paddingBottom: 12
   },
   platformName: {
-    fontSize: typography.size.lg,
-    fontWeight: 'bold',
+      fontSize: 14,
+      fontWeight: 'bold',
+      textTransform: 'uppercase'
   },
-  platformUsername: {
-    color: colors.text.secondary,
+  detailUsername: {
+      fontSize: 12,
+      color: colors.text.muted
   },
-  platformStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 15,
+  detailStatsRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center'
   },
-  platformStat: {
-    alignItems: 'center',
+  detailStatItem: {
+      alignItems: 'center',
+      flex: 1
   },
-  platformStatValue: {
-    fontSize: typography.size.xl,
-    fontWeight: 'bold',
-    color: colors.text.primary,
+  detailValue: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      color: colors.text.primary,
+      marginBottom: 2
   },
-  platformStatLabel: {
-    fontSize: typography.size.xs,
-    color: colors.text.secondary,
+  detailLabel: {
+      fontSize: 10,
+      color: colors.text.secondary,
+      textTransform: 'uppercase'
   },
-  rankBadge: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    alignSelf: 'center',
-  },
-  rankText: {
-    color: colors.text.primary,
-    fontWeight: 'bold',
-    textTransform: 'capitalize',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-  },
-  emptyTitle: {
-    fontSize: typography.size.xl,
-    fontWeight: 'bold',
-    color: colors.text.primary,
-    marginBottom: 10,
-  },
-  emptyText: {
-    fontSize: typography.size.md,
-    color: colors.text.secondary,
-    textAlign: 'center',
-  },
+  divider: {
+      width: 1,
+      height: 24,
+      backgroundColor: colors.border
+  }
 });
+

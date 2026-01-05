@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
-import { ActivityIndicator, Card, Chip, Searchbar, Text } from 'react-native-paper';
+import { ActivityIndicator, Card, Chip, IconButton, Searchbar, Text } from 'react-native-paper';
 import { useContestStore } from '../../src/stores/useContestStore';
 import { colors } from '../../src/theme/colors';
 import { Contest } from '../../src/types/contest';
@@ -8,7 +8,7 @@ import { PLATFORMS, PlatformId } from '../../src/types/platform';
 import { formatContestTime, formatDuration } from '../../src/utils/dateUtils';
 
 export default function ContestsScreen() {
-  const { upcomingContests, loadContests, syncContests, isLoading } = useContestStore();
+  const { upcomingContests, loadContests, syncContests, toggleReminder, isLoading } = useContestStore();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<PlatformId | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -29,23 +29,38 @@ export default function ContestsScreen() {
     return matchesPlatform && matchesSearch;
   });
 
-  const renderItem = ({ item }: { item: Contest }) => (
-    <Card style={styles.card}>
-      <Card.Content>
-        <View style={styles.cardHeader}>
-          <Text style={[styles.platformName, { color: PLATFORMS[item.platformId].color }]}>
-            {PLATFORMS[item.platformId].name}
-          </Text>
-          <Text style={styles.startTime}>{formatContestTime(item.startTime)}</Text>
-        </View>
-        <Text style={styles.contestName}>{item.name}</Text>
-        <View style={styles.cardFooter}>
-          <Text style={styles.duration}>Duration: {formatDuration(item.durationSeconds)}</Text>
-          {item.isRated && <Chip compact style={styles.ratedChip}>Rated</Chip>}
-        </View>
-      </Card.Content>
-    </Card>
-  );
+  const renderItem = ({ item }: { item: Contest }) => {
+    const handleToggleReminder = () => {
+      toggleReminder(item.id, !item.reminderSet);
+    };
+
+    return (
+      <Card style={styles.card}>
+        <Card.Content>
+          <View style={styles.cardHeader}>
+            <Text style={[styles.platformName, { color: PLATFORMS[item.platformId].color }]}>
+              {PLATFORMS[item.platformId].name}
+            </Text>
+            <Text style={styles.startTime}>{formatContestTime(item.startTime)}</Text>
+          </View>
+          <Text style={styles.contestName}>{item.name}</Text>
+          <View style={styles.cardFooter}>
+            <Text style={styles.duration}>Duration: {formatDuration(item.durationSeconds)}</Text>
+            <View style={styles.footerActions}>
+              {item.isRated && <Chip compact style={styles.ratedChip}>Rated</Chip>}
+              <IconButton
+                icon={item.reminderSet ? 'bell' : 'bell-outline'}
+                iconColor={item.reminderSet ? colors.accent : colors.text.secondary}
+                size={20}
+                onPress={handleToggleReminder}
+                style={styles.reminderButton}
+              />
+            </View>
+          </View>
+        </Card.Content>
+      </Card>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -169,5 +184,13 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
     textAlign: 'center',
     marginTop: 50,
+  },
+  footerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  reminderButton: {
+    margin: 0,
   },
 });

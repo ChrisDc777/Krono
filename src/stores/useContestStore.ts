@@ -1,5 +1,8 @@
 import { create } from 'zustand';
+import { codeforcesApi } from '../api/codeforces';
+import { leetcodeApi } from '../api/leetcode';
 import { getUpcomingContests, saveContest, saveContests } from '../database/repositories/contestRepository';
+import { normalizeCodeforcesContest, normalizeLeetCodeContest } from '../services/dataNormalizer';
 import { Contest } from '../types/contest';
 
 interface ContestState {
@@ -34,16 +37,24 @@ export const useContestStore = create<ContestState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       // 1. Fetch from Codeforces
-      const { codeforcesApi } = await import('../api/codeforces');
-      const { normalizeCodeforcesContest } = await import('../services/dataNormalizer');
-      
       const cfContestsRaw = await codeforcesApi.getContestList();
       const cfContests = cfContestsRaw.map(normalizeCodeforcesContest);
 
-      // 2. Add other platforms...
+      // 2. Fetch from LeetCode
+      let lcContests: Contest[] = [];
+      try {
+        const lcContestsRaw = await leetcodeApi.getUpcomingContests();
+        if (lcContestsRaw && lcContestsRaw.length > 0) {
+          lcContests = lcContestsRaw.map(normalizeLeetCodeContest);
+        }
+      } catch (lcError) {
+        console.warn('Failed to fetch LeetCode contests:', lcError);
+        // Continue without LeetCode contests
+      }
 
-      // 3. Save to DB (local cache)
-      await saveContests(cfContests);
+      // 3. Combine and save to DB (local cache)
+      const allContests = [...cfContests, ...lcContests];
+      await saveContests(allContests);
       
       // 4. Reload from DB to get the sorted, filtered list
       const upcoming = await getUpcomingContests();
@@ -68,19 +79,17 @@ export const useContestStore = create<ContestState>((set, get) => ({
     
     if (contest) {
       let updatedContest = { ...contest };
-      
-      // Load Notification Service dynamically
-      const { notificationService } = await import('../services/notificationService');
 
       if (enable) {
-        // Schedule
-        const notificationId = await notificationService.scheduleContestReminder(contest);
-        // Note: In a real app we'd track multiple reminders. 
-        // For simplicity, we just assume one reminder at 15m before.
+        // Schedule - use dynamic import to avoid startup issues
+        try {
+          const { notificationService } = await import('../services/notificationService');
+          await notificationService.scheduleContestReminder(contest);
+        } catch (e) {
+          console.warn('Notifications not available');
+        }
         updatedContest.reminderSet = true;
-        // logic to save notificationId to contest...
       } else {
-        // Cancel logic here if we saved the ID
         updatedContest.reminderSet = false;
       }
 
@@ -94,3 +103,4 @@ export const useContestStore = create<ContestState>((set, get) => ({
     }
   }
 }));
+

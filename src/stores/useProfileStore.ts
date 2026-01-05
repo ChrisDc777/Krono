@@ -1,5 +1,8 @@
 import { create } from 'zustand';
-import { getAllProfiles, saveProfile } from '../database/repositories/profileRepository';
+import { codeforcesApi } from '../api/codeforces';
+import { leetcodeApi } from '../api/leetcode';
+import { deleteAllProfiles, deleteProfile, getAllProfiles, saveProfile } from '../database/repositories/profileRepository';
+import { normalizeCodeforcesProfile, normalizeLeetCodeProfile } from '../services/dataNormalizer';
 import { PlatformId } from '../types/platform';
 import { UnifiedProfile } from '../types/user';
 
@@ -11,6 +14,8 @@ interface ProfileState {
   // Actions
   loadProfiles: () => Promise<void>;
   addProfile: (platform: PlatformId, handle: string) => Promise<void>;
+  removeProfile: (id: string) => Promise<void>;
+  clearAllProfiles: () => Promise<void>;
   refreshProfile: (id: string) => Promise<void>;
   refreshAllProfiles: () => Promise<void>;
 }
@@ -43,18 +48,27 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
       let newProfile: UnifiedProfile | null = null;
 
       if (platform === 'codeforces') {
-        const { codeforcesApi } = await import('../api/codeforces');
-        const { normalizeCodeforcesProfile } = await import('../services/dataNormalizer');
-
         // Fetch data in parallel
         const [userInfo, ratingHistory, submissions] = await Promise.all([
           codeforcesApi.getUserInfo(handle),
-          codeforcesApi.getUserRating(handle).catch(() => []), // Handle might have no history
-          codeforcesApi.getUserSubmissions(handle).catch(() => [])
+          codeforcesApi.getUserRating(handle).catch(() => []),
+          codeforcesApi.getUserSubmissions(handle, 5000).catch(() => [])
         ]);
 
         newProfile = normalizeCodeforcesProfile(userInfo, ratingHistory, submissions);
-      } 
+      } else if (platform === 'leetcode') {
+        // Fetch profile and contest data in parallel
+        const [userData, contestData] = await Promise.all([
+          leetcodeApi.getUserProfile(handle),
+          leetcodeApi.getUserContestRanking(handle).catch(() => ({ ranking: null, history: [] }))
+        ]);
+
+        if (!userData) {
+          throw new Error('User not found on LeetCode');
+        }
+
+        newProfile = normalizeLeetCodeProfile(userData, contestData);
+      }
       // Add other platforms here...
 
       if (newProfile) {
@@ -76,6 +90,26 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     }
   },
 
+  removeProfile: async (id: string) => {
+    try {
+      await deleteProfile(id);
+      set(state => ({
+        profiles: state.profiles.filter(p => p.id !== id)
+      }));
+    } catch (error) {
+      console.error('Failed to remove profile:', error);
+    }
+  },
+
+  clearAllProfiles: async () => {
+    try {
+      await deleteAllProfiles();
+      set({ profiles: [] });
+    } catch (error) {
+      console.error('Failed to clear profiles:', error);
+    }
+  },
+
   refreshProfile: async (id: string) => {
     // TODO: Implement actual refresh logic 
   },
@@ -85,3 +119,5 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
     await Promise.all(profiles.map(p => refreshProfile(p.id)));
   }
 }));
+
+

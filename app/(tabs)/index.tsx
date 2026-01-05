@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Button, Card, IconButton, Text } from 'react-native-paper';
@@ -9,7 +10,8 @@ import { PLATFORMS } from '../../src/types/platform';
 import { formatContestTime, formatDuration } from '../../src/utils/dateUtils';
 
 export default function DashboardScreen() {
-  const { profiles, loadProfiles, addProfile, isLoading: isProfileLoading } = useProfileStore();
+  const router = useRouter();
+  const { profiles, loadProfiles, isLoading: isProfileLoading } = useProfileStore();
   const { upcomingContests, loadContests, syncContests, isLoading: isContestLoading } = useContestStore();
 
   useEffect(() => {
@@ -17,9 +19,8 @@ export default function DashboardScreen() {
     loadContests();
   }, []);
 
-  const handleAddDemoProfile = () => {
-    // Demo action
-    addProfile('codeforces', 'tourist');
+  const handleGoToSettings = () => {
+    router.push('/settings');
   };
 
   const handleSync = () => {
@@ -47,13 +48,14 @@ export default function DashboardScreen() {
             <Card style={styles.card}>
               <Card.Content>
                 <Text style={styles.emptyText}>No profiles connected yet.</Text>
+                <Text style={styles.hintText}>Add your competitive programming profiles to track your progress.</Text>
                 <Button 
                   mode="contained" 
-                  onPress={handleAddDemoProfile}
+                  onPress={handleGoToSettings}
                   style={styles.button}
-                  loading={isProfileLoading}
+                  icon="plus"
                 >
-                  Add Codeforces Profile
+                  Add Profile
                 </Button>
               </Card.Content>
             </Card>
@@ -169,6 +171,12 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
     textAlign: 'center',
     marginVertical: 10,
+  },
+  hintText: {
+    color: colors.text.disabled,
+    textAlign: 'center',
+    fontSize: typography.size.sm,
+    marginBottom: 10,
   },
   button: {
     marginTop: 10,

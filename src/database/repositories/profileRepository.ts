@@ -4,27 +4,29 @@ import { openDatabase } from '../db';
 
 export const saveProfile = async (profile: UnifiedProfile) => {
   const db = await openDatabase();
-  await db.runAsync(
-    `INSERT OR REPLACE INTO profiles (
-      id, platformId, username, displayName, avatar, rating, maxRating, rank, 
-      problemsSolved, totalSubmissions, badges, lastUpdated, isStale
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      profile.id,
-      profile.platformId,
-      profile.username,
-      profile.displayName ?? null,
-      profile.avatar ?? null,
-      profile.rating ?? null,
-      profile.maxRating ?? null,
-      profile.rank ?? null,
-      profile.problemsSolved,
-      profile.totalSubmissions,
-      JSON.stringify(profile.badges),
-      dateToTimestamp(profile.lastUpdated),
-      profile.isStale ? 1 : 0
-    ]
-  );
+  await db.withTransactionAsync(async () => {
+    await db.runAsync(
+      `INSERT OR REPLACE INTO profiles (
+        id, platformId, username, displayName, avatar, rating, maxRating, rank, 
+        problemsSolved, totalSubmissions, badges, lastUpdated, isStale
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        profile.id,
+        profile.platformId,
+        profile.username,
+        profile.displayName ?? null,
+        profile.avatar ?? null,
+        profile.rating ?? null,
+        profile.maxRating ?? null,
+        profile.rank ?? null,
+        profile.problemsSolved,
+        profile.totalSubmissions,
+        JSON.stringify(profile.badges),
+        dateToTimestamp(profile.lastUpdated),
+        profile.isStale ? 1 : 0
+      ]
+    );
+  });
 };
 
 export const getProfile = async (id: string): Promise<UnifiedProfile | null> => {
@@ -70,3 +72,18 @@ export const getAllProfiles = async (): Promise<UnifiedProfile[]> => {
     isStale: !!result.isStale
   }));
 };
+
+export const deleteProfile = async (id: string): Promise<void> => {
+  const db = await openDatabase();
+  await db.withTransactionAsync(async () => {
+    await db.runAsync('DELETE FROM profiles WHERE id = ?', [id]);
+  });
+};
+
+export const deleteAllProfiles = async (): Promise<void> => {
+  const db = await openDatabase();
+  await db.withTransactionAsync(async () => {
+    await db.runAsync('DELETE FROM profiles');
+  });
+};
+

@@ -87,3 +87,68 @@ export const normalizeCodeforcesSubmission = (submission: any): Submission => {
     memoryConsumedBytes: submission.memoryConsumedBytes,
   };
 };
+
+// ==================== LEETCODE NORMALIZERS ====================
+
+export const normalizeLeetCodeProfile = (
+  userData: any,
+  contestData: any
+): UnifiedProfile => {
+  // Calculate total problems solved from acSubmissionNum
+  const acStats = userData?.submitStats?.acSubmissionNum || [];
+  const totalSolved = acStats.find((s: any) => s.difficulty === 'All')?.count || 0;
+  
+  // Get total submissions
+  const totalStats = userData?.submitStats?.totalSubmissionNum || [];
+  const totalSubmissions = totalStats.find((s: any) => s.difficulty === 'All')?.count || 0;
+
+  // Contest rating info
+  const contestRating = contestData?.ranking?.rating || 0;
+  const globalRanking = contestData?.ranking?.globalRanking;
+
+  return {
+    id: `leetcode:${userData.username}`,
+    platformId: 'leetcode',
+    username: userData.username,
+    displayName: userData.profile?.realName || userData.username,
+    avatar: userData.profile?.userAvatar,
+    
+    rating: Math.round(contestRating),
+    maxRating: Math.round(contestRating), // LeetCode doesn't expose max rating easily
+    rank: globalRanking ? `#${globalRanking}` : undefined,
+    
+    problemsSolved: totalSolved,
+    totalSubmissions: totalSubmissions,
+    
+    badges: [], // Could parse from profile if needed
+    
+    lastUpdated: new Date(),
+    isStale: false
+  };
+};
+
+export const normalizeLeetCodeContest = (lcContest: any): Contest => {
+  const startTime = new Date(lcContest.startTime * 1000);
+  const durationSeconds = lcContest.duration;
+  const endTime = new Date(startTime.getTime() + durationSeconds * 1000);
+  const now = new Date();
+
+  let phase: ContestPhase = 'upcoming';
+  if (now > endTime) phase = 'finished';
+  else if (now >= startTime && now <= endTime) phase = 'running';
+
+  return {
+    id: `leetcode:${lcContest.titleSlug}`,
+    externalId: lcContest.titleSlug,
+    platformId: 'leetcode',
+    name: lcContest.title,
+    startTime,
+    endTime,
+    durationSeconds,
+    url: `https://leetcode.com/contest/${lcContest.titleSlug}`,
+    isRated: true,
+    phase,
+    reminderSet: false,
+    scheduledReminders: []
+  };
+};

@@ -2,9 +2,7 @@ export type PlatformId =
   | "codeforces"
   | "leetcode"
   | "codechef"
-  | "atcoder"
-  | "codingninjas"
-  | "geeksforgeeks";
+  | "atcoder";
 
 export interface Platform {
   id: PlatformId;
@@ -40,21 +38,8 @@ export const PLATFORMS: Record<PlatformId, Platform> = {
     id: "atcoder",
     name: "AtCoder",
     icon: "alpha-a-circle",
-    color: "#000000",
+    color: "#FFFFFF",
     baseUrl: "https://atcoder.jp",
   },
-  codingninjas: {
-    id: "codingninjas",
-    name: "Coding Ninjas",
-    icon: "ninja",
-    color: "#f66c24",
-    baseUrl: "https://www.codingninjas.com",
-  },
-  geeksforgeeks: {
-    id: "geeksforgeeks",
-    name: "GeeksforGeeks",
-    icon: "code-array",
-    color: "#2f8d46",
-    baseUrl: "https://www.geeksforgeeks.org",
-  },
+
 };

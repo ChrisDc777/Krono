@@ -1,32 +1,41 @@
 export const colors = {
-  // Dark mode primary
-  background: '#121212',
-  surface: '#1e1e1e',
-  surfaceHighlight: '#2c2c2c',
+  // Vibrant Dark Theme - "Cyber Nebula"
+  background: '#13111C', // Deep, rich violet-black, not pitch black
+  surface: '#1E1B2E',    // Lighter violet-grey
+  surfaceHighlight: '#2D2A42',
+  border: '#3E3B56',
   
-  primary: '#6b3ac2', // Deep purple
-  accent: '#03dac6', // Teal
+  primary: '#A855F7', // Vivid Purple
+  secondary: '#06B6D4', // Electric Cyan
+  accent: '#F43F5E', // Neon Rose
   
   text: {
-    primary: '#ffffff',
-    secondary: '#b0b0b0',
-    disabled: '#6e6e6e',
+    primary: '#F8FAFC', // Crisp White
+    secondary: '#CBD5E1', // Bright Grey
+    muted: '#94A3B8',
+    disabled: '#475569',
+    inverse: '#0F172A',
   },
   
   status: {
-    success: '#4caf50',
-    error: '#cf6679',
-    warning: '#fb8c00',
-    info: '#2196f3',
+    success: '#34D399', // Emerald
+    error: '#F87171',   // Soft Red
+    warning: '#FBBF24', // Amber
+    info: '#60A5FA',    // Blue
   },
   
   platforms: {
-    codeforces: '#1f8dd6',
-    leetcode: '#ffa116',
-    codechef: '#5b4638',
-    atcoder: '#ffffff',
-    codingninjas: '#f66c24',
-    geeksforgeeks: '#2f8d46',
+    codeforces: '#3B82F6', 
+    leetcode: '#F59E0B',   
+    codechef: '#D97706',   // More vibrant amber/gold
+    atcoder: '#FFFFFF',    
+    geeksforgeeks: '#22C55E', 
+  },
+
+  // Gradients ( simulated with object for usage in styles)
+  gradients: {
+    primary: ['#A855F7', '#C084FC'],
+    surface: ['#1E1B2E', '#2D2A42'],
   }
 };
 
@@ -37,7 +46,7 @@ export const darkTheme = {
     background: colors.background,
     card: colors.surface,
     text: colors.text.primary,
-    border: colors.surfaceHighlight,
-    notification: colors.accent,
+    border: colors.border,
+    notification: colors.secondary,
   },
 };

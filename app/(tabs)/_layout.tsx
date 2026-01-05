@@ -45,6 +45,7 @@ export default function TabLayout() {
         name="settings"
         options={{
           title: 'Settings',
+          href: null, // Hide from tab bar
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="settings" size={size} color={color} />
           ),

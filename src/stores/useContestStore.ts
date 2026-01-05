@@ -1,9 +1,10 @@
 import { create } from 'zustand';
+import { atcoderApi } from '../api/atcoder';
 import { codechefApi } from '../api/codechef';
 import { codeforcesApi } from '../api/codeforces';
 import { leetcodeApi } from '../api/leetcode';
 import { getUpcomingContests, saveContest, saveContests } from '../database/repositories/contestRepository';
-import { normalizeCodeChefContest, normalizeCodeforcesContest, normalizeLeetCodeContest } from '../services/dataNormalizer';
+import { normalizeAtCoderContest, normalizeCodeChefContest, normalizeCodeforcesContest, normalizeLeetCodeContest } from '../services/dataNormalizer';
 import { Contest } from '../types/contest';
 
 interface ContestState {
@@ -64,11 +65,22 @@ export const useContestStore = create<ContestState>((set, get) => ({
         console.warn('Failed to fetch CodeChef contests:', ccError);
       }
 
-      // 4. Combine and save to DB (local cache)
-      const allContests = [...cfContests, ...lcContests, ...ccContests];
+      // 4. Fetch from AtCoder
+      let acContests: Contest[] = [];
+      try {
+        const acContestsRaw = await atcoderApi.getContestList();
+        if (acContestsRaw && acContestsRaw.length > 0) {
+          acContests = acContestsRaw.map(normalizeAtCoderContest);
+        }
+      } catch (acError) {
+        console.warn('Failed to fetch AtCoder contests:', acError);
+      }
+
+      // 5. Combine and save to DB (local cache)
+      const allContests = [...cfContests, ...lcContests, ...ccContests, ...acContests];
       await saveContests(allContests);
       
-      // 5. Reload from DB to get the sorted, filtered list
+      // 6. Reload from DB to get the sorted, filtered list
       const upcoming = await getUpcomingContests();
       
       set({ 

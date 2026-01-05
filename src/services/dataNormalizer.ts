@@ -207,3 +207,53 @@ export const normalizeCodeChefContest = (ccContest: any): Contest => {
     scheduledReminders: []
   };
 };
+
+// ==================== ATCODER NORMALIZERS ====================
+
+export const normalizeAtCoderProfile = (userData: any): UnifiedProfile => {
+  return {
+    id: `atcoder:${userData.handle}`,
+    platformId: 'atcoder',
+    username: userData.handle,
+    displayName: userData.handle, // AtCoder doesn't expose real name easily
+    avatar: userData.avatar,
+    
+    rating: userData.rating,
+    maxRating: userData.maxRating,
+    rank: userData.rank, // Often undefined
+    
+    problemsSolved: userData.problemsSolved,
+    totalSubmissions: 0, // Not easily available without aggregating huge data
+    
+    badges: [],
+    
+    lastUpdated: new Date(),
+    isStale: false
+  };
+};
+
+export const normalizeAtCoderContest = (acContest: any): Contest => {
+  const startTime = new Date(acContest.start_epoch_second * 1000);
+  const durationSeconds = acContest.duration_second;
+  const endTime = new Date(startTime.getTime() + durationSeconds * 1000);
+  const now = new Date();
+
+  let phase: ContestPhase = 'upcoming';
+  if (now > endTime) phase = 'finished';
+  else if (now >= startTime && now <= endTime) phase = 'running';
+
+  return {
+    id: `atcoder:${acContest.id}`,
+    externalId: acContest.id,
+    platformId: 'atcoder',
+    name: acContest.title,
+    startTime,
+    endTime,
+    durationSeconds,
+    url: `https://atcoder.jp/contests/${acContest.id}`,
+    isRated: acContest.rate_change !== '-', // heuristic based on rate_change field
+    phase,
+    reminderSet: false,
+    scheduledReminders: []
+  };
+};

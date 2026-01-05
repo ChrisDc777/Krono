@@ -1,55 +1,60 @@
 export const colors = {
-  // Premium Midnight Theme
-  background: '#09090B', // Zinc 950 - Very dark, almost black, distinct from "void" black
-  surface: '#18181B',    // Zinc 900
-  surfaceHighlight: '#27272A', // Zinc 800
-  border: '#27272A', // Subtle borders
+  // Neutral Neo-Brutalist (Stone Paper)
+  background: '#F5F5F4', // Stone 100
+  surface: '#FFFFFF',    // White
+  surfaceHighlight: '#E7E5E4', // Stone 200
+  border: '#1C1917',     // Stone 900 (Black)
   
-  // Sophisticated Accents
-  primary: '#6366F1', // Indigo 500 - Professional, trustworthy
-  primaryDark: '#4F46E5', // Indigo 600
-  secondary: '#EC4899', // Pink 500 - For specific highlights
-  accent: '#F59E0B',     // Amber 500 - Gold/Premium feel
+  primary: '#1C1917', // Black
+  secondary: '#57534E', // Stone 600
+  accent: '#A8A29E', // Stone 400
   
   text: {
-    primary: '#FAFAFA', // Zinc 50
-    secondary: '#A1A1AA', // Zinc 400
-    muted: '#71717A',    // Zinc 500
-    disabled: '#52525B', // Zinc 600
-    inverse: '#000000',
+    primary: '#1C1917', // Stone 900
+    secondary: '#57534E', // Stone 600
+    muted: '#A8A29E', // Stone 400
+    disabled: '#D6D3D1', // Stone 300
+    inverse: '#FFFFFF', // White text on black
   },
   
   status: {
-    success: '#10B981', // Emerald 500
-    error: '#EF4444',   // Red 500
-    warning: '#F59E0B', // Amber 500
-    info: '#3B82F6',    // Blue 500
-  },
-  
-  platforms: {
-    codeforces: '#228BE6', // Crisp Blue
-    leetcode: '#FAB005',   // Rich Yellow
-    codechef: '#BE4BDB',   // Grape/Purple (Distinct from standard brown)
-    atcoder: '#FFFFFF',    // White
-    geeksforgeeks: '#40C057', // Lime Green
+    success: '#166534', // Green 800
+    error: '#DC2626',   // Red 600
+    warning: '#D97706', // Amber 600
+    info: '#0284C7',    // Sky 600
   },
 
-  gradients: {
-    primary: ['#6366F1', '#8B5CF6'], // Indigo -> Violet
-    card: ['#18181B', '#18181B'], // Solid for now, or subtle gradient
-    glass: ['rgba(24, 24, 27, 0.7)', 'rgba(24, 24, 27, 0.3)'],
-    gold: ['#F59E0B', '#D97706'],
-  }
+  platforms: {
+    codeforces: '#1C1917', 
+    leetcode: '#1C1917',   
+    codechef: '#1C1917',   
+    atcoder: '#1C1917',    
+    codingninjas: '#1C1917',
+    geeksforgeeks: '#1C1917',
+  },
 };
 
 export const darkTheme = {
-  dark: true,
+  dark: false, // Switch to Light Mode
   colors: {
     primary: colors.primary,
     background: colors.background,
     card: colors.surface,
     text: colors.text.primary,
     border: colors.border,
-    notification: colors.secondary,
+    notification: colors.primary,
+    surface: colors.surface,
+    onSurface: colors.text.primary,
+    error: colors.status.error,
+    placeholder: colors.text.muted,
+    backdrop: 'rgba(0,0,0,0.5)',
+    elevation: {
+        level0: 'transparent',
+        level1: colors.surface,
+        level2: colors.surface,
+        level3: colors.surface,
+        level4: colors.surface,
+        level5: colors.surface,
+    }
   },
 };

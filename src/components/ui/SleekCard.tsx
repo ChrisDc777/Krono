@@ -1,46 +1,48 @@
 import React from 'react';
-import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { StyleSheet, View, ViewStyle } from 'react-native';
 import { colors } from '../../theme/colors';
 
 interface SleekCardProps {
   children: React.ReactNode;
-  style?: StyleProp<ViewStyle>;
-  variant?: 'default' | 'highlight' | 'bordered';
+  style?: ViewStyle;
+  variant?: 'primary' | 'secondary' | 'accent' | 'default';
+  customShadowColor?: string;
 }
 
-export const SleekCard: React.FC<SleekCardProps> = ({ children, style, variant = 'default' }) => {
-  const getBackgroundColor = () => {
-    switch (variant) {
-      case 'highlight': return colors.surfaceHighlight;
-      case 'bordered': return 'transparent';
-      default: return colors.surface;
-    }
-  };
-
-  const getBorder = () => {
-    if (variant === 'bordered') return { borderWidth: 1, borderColor: colors.border };
-    return {};
-  };
+export const SleekCard = ({ children, style, variant = 'primary', customShadowColor }: SleekCardProps) => {
+  // Determine shadow color based on variant
+  let shadowColor = colors.primary;
+  if (variant === 'secondary') shadowColor = colors.secondary;
+  if (variant === 'accent') shadowColor = colors.accent;
+  if (variant === 'default') shadowColor = '#1C1917'; // Match primary Black
+  
+  // Override if custom color provided
+  if (customShadowColor) shadowColor = customShadowColor;
 
   return (
-    <View style={[styles.card, { backgroundColor: getBackgroundColor() }, getBorder(), style]}>
-      {children}
+    <View style={[styles.shadowLayer, { backgroundColor: shadowColor }, style]}>
+      <View style={styles.cardContent}>
+        {children}
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
+  shadowLayer: {
+    borderRadius: 16, // Squircle-like
+    marginBottom: 16,
+    marginRight: 4,
+  },
+  cardContent: {
+    backgroundColor: colors.surface,
+    borderWidth: 2,
     borderColor: colors.border,
-    // Soft shadow for iOS
-    shadowColor: colors.primary, // Use primary color for shadow for a glow effect
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    // Elevation for Android
-    elevation: 6,
+    padding: 16,
+    borderRadius: 16, // Match shadow layer
+    // Offset the content "up and left" relative to the shadow layer
+    // to reveal the shadow on bottom-right
+    transform: [{ translateX: -4 }, { translateY: -4 }],
+    minHeight: 50, 
   }
 });

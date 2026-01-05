@@ -4,6 +4,7 @@ import { colors } from '../../theme/colors';
 import { Contest } from '../../types/contest';
 import { PLATFORMS } from '../../types/platform';
 import { formatContestTime, formatDuration } from '../../utils/dateUtils';
+import { SleekCard } from './SleekCard';
 
 interface TimelineItemProps {
   contest: Contest;
@@ -18,26 +19,28 @@ export const TimelineItem: React.FC<TimelineItemProps> = ({ contest, isLast = fa
   const month = startTime.toLocaleString('default', { month: 'short' }).toUpperCase();
   const time = formatContestTime(new Date(contest.startTime));
 
+  const getBrandColor = () => {
+       if (contest.platformId === 'leetcode') return '#FFA116'; 
+       if (contest.platformId === 'codechef') return '#5B4638'; 
+       if (contest.platformId === 'codeforces') return '#EE2211'; 
+       return '#1C1917';
+  };
+
+  const brandColor = getBrandColor();
+
   return (
     <View style={styles.container}>
-      {/* Left Time Column */}
+      {/* Left Time Column - Vertical Stack */}
       <View style={styles.leftColumn}>
         <Text style={styles.day}>{day}</Text>
         <Text style={styles.month}>{month}</Text>
-        {/* <Text style={styles.time}>{time}</Text> */}
       </View>
 
-      {/* Timeline Line */}
-      <View style={styles.timeline}>
-         <View style={[styles.dot, { borderColor: platform.color, backgroundColor: colors.background }]} />
-         {!isLast && <View style={styles.line} />}
-      </View>
-
-      {/* Right Content */}
+      {/* Right Content - Wrapped Card */}
       <View style={styles.content}>
-        <View style={styles.card}>
+        <SleekCard style={styles.card} variant="default" customShadowColor={brandColor}>
             <View style={styles.cardHeader}>
-                 <Text style={[styles.platformName, { color: platform.color }]}>{platform.name}</Text>
+                 <Text style={[styles.platformName, { color: brandColor }]}>{platform.name}</Text>
                  <Text style={styles.timeLabel}>{time}</Text>
             </View>
             <Text style={styles.title} numberOfLines={2}>{contest.name}</Text>
@@ -46,7 +49,7 @@ export const TimelineItem: React.FC<TimelineItemProps> = ({ contest, isLast = fa
                     {formatDuration(contest.durationSeconds)}
                 </Text>
             </View>
-        </View>
+        </SleekCard>
       </View>
     </View>
   );
@@ -55,58 +58,33 @@ export const TimelineItem: React.FC<TimelineItemProps> = ({ contest, isLast = fa
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    marginBottom: 0, // line handles spacing
+    marginBottom: 8,
+    paddingHorizontal: 4,
   },
   leftColumn: {
-    width: 50,
+    width: 44,
     alignItems: 'center',
-    paddingTop: 0,
+    justifyContent: 'flex-start',
+    paddingTop: 4, 
+    marginRight: 8
   },
   day: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: '900',
     color: colors.text.primary,
   },
   month: {
-      fontSize: 11,
+      fontSize: 10,
       fontWeight: 'bold',
       color: colors.text.muted,
       textTransform: 'uppercase'
   },
-  time: {
-      fontSize: 10,
-      color: colors.text.muted,
-      marginTop: 4
-  },
-  timeline: {
-    alignItems: 'center',
-    width: 30,
-    marginRight: 10
-  },
-  dot: {
-      width: 12,
-      height: 12,
-      borderRadius: 6,
-      borderWidth: 2,
-      zIndex: 1,
-      marginTop: 6
-  },
-  line: {
-      width: 2,
-      flex: 1,
-      backgroundColor: colors.surfaceHighlight,
-      marginVertical: 4
-  },
   content: {
     flex: 1,
-    paddingBottom: 24
   },
   card: {
-      backgroundColor: colors.surface,
-      borderRadius: 16,
-      padding: 16,
-      borderWidth: 1,
-      borderColor: colors.border
+      minHeight: 80,
+      marginRight: 0
   },
   cardHeader: {
       flexDirection: 'row',
@@ -115,30 +93,31 @@ const styles = StyleSheet.create({
   },
   platformName: {
       fontSize: 10,
-      fontWeight: 'bold',
+      fontWeight: '900',
       textTransform: 'uppercase',
       letterSpacing: 1
   },
   timeLabel: {
-    fontSize: 12,
-    color: colors.text.secondary
+    fontSize: 11,
+    color: colors.text.secondary,
+    fontWeight: '600'
   },
   title: {
-      fontSize: 15,
-      fontWeight: '600',
+      fontSize: 14,
+      fontWeight: '700',
       color: colors.text.primary,
-      lineHeight: 22,
+      lineHeight: 20,
       marginBottom: 8
   },
   footer: {
       flexDirection: 'row'
   },
   duration: {
-      fontSize: 11,
-      color: colors.text.muted,
-      backgroundColor: colors.surfaceHighlight,
-      paddingHorizontal: 8,
+      fontSize: 10,
+      color: colors.text.inverse,
+      backgroundColor: colors.text.secondary,
+      paddingHorizontal: 6,
       paddingVertical: 2,
-      borderRadius: 6
+      fontWeight: 'bold'
   }
 });

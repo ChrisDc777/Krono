@@ -235,10 +235,29 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: colors.surface,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: colors.border,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 0,
+    marginBottom: 4,
+    marginRight: 4
   },
   profileCard: {
     backgroundColor: colors.surface,
-    marginBottom: 10,
+    marginBottom: 16, // Space for shadow
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: colors.border,
+    shadowColor: colors.secondary, // Cyan shadow for profiles
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 0,
+    marginRight: 4
   },
   profileRow: {
     flexDirection: 'row',
@@ -282,6 +301,16 @@ const styles = StyleSheet.create({
   platformCard: {
     backgroundColor: colors.surface,
     width: '48%',
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: colors.border,
+    shadowColor: colors.accent, // Lime shadow for add buttons
+    shadowOffset: { width: 3, height: 3 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 0,
+    marginBottom: 10,
+    marginRight: 4
   },
   platformCardContent: {
     flexDirection: 'row',

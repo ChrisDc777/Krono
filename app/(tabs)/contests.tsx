@@ -176,10 +176,17 @@ const styles = StyleSheet.create({
   searchBar: {
     backgroundColor: colors.surface,
     elevation: 0,
-    borderWidth: 1,
+    borderWidth: 2, // Thick
     borderColor: colors.border,
-    height: 46,
-    marginBottom: 12
+    height: 50,
+    marginBottom: 16,
+    borderRadius: 4, // Sharp
+    
+    // Hard Shadow
+    shadowColor: colors.primary,
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
   },
   chipsContainer: {
     flexDirection: 'row',
@@ -189,12 +196,15 @@ const styles = StyleSheet.create({
   chip: {
     backgroundColor: colors.surface,
     borderColor: colors.border,
-    borderWidth: 1,
-    height: 32
+    borderWidth: 2, // Thick
+    height: 36,
+    borderRadius: 4, // Sharp
+    marginRight: 4,
   },
   chipSelected: {
-      backgroundColor: colors.text.primary,
-      borderWidth: 0
+      backgroundColor: colors.text.primary, // White background for selected
+      borderWidth: 2,
+      borderColor: colors.primary, // Pink border for selected
   },
   listContent: {
     paddingBottom: 40,

@@ -18,7 +18,9 @@ export interface UnifiedProfile {
   // Rating Stats
   rating: number;
   maxRating: number;
-  rank?: string; // e.g., "Candidate Master", "Guardian"
+  rank?: string; // e.g., "Candidate Master", "Guardian", "3 Star"
+  globalRank?: number; // e.g. 1234
+  topPercentage?: number; // e.g. 5.5%
   
   // Progress Stats
   problemsSolved: number;

@@ -62,35 +62,67 @@ export const codechefApi = {
       const maxRating = maxRatingMatch ? parseInt(maxRatingMatch[1], 10) : rating;
 
       // 3. Stars (e.g. "3★")
-      const starsMatch = html.match(/<span class="rating">(\d+).?<\/span>/) || html.match(/class="rating"[^>]*>(\d+).?<\/div>/);
-      // CodeChef structure is often <div class="rating-star">...<span>3★</span>...</div>
-      // Let's try to match the star count more broadly usually it's just a number in the "rating-star" block
-      // Actually, standard profile has <div class="rating-star">...<span>7★</span>...</div>
+      // We try multiple patterns to be robust against HTML changes
+      let starRating: string | undefined;
+
+      // Pattern A: Standard "rating-star" block
+      // <div class="rating-star"> \n <span> \n 3★ \n </span> </div>
+      const standardMatch = html.match(/class="rating-star"[\s\S]*?>\s*(\d+)\s*★/);
       
+      // Pattern B: Simple "<span>3★</span>" or similar
+      const simpleMatch = html.match(/>\s*(\d+)\s*★\s*</);
+
+      // Pattern C: Text based "3 Star"
+      const textMatch = html.match(/(\d+)\s*Star/i);
+
+      if (standardMatch) {
+          starRating = standardMatch[1];
+      } else if (simpleMatch) {
+          starRating = simpleMatch[1];
+      } else if (textMatch) {
+          starRating = textMatch[1];
+      }
+
       // 4. Rank (Global and Country)
-      // <strong>Global Rank:</strong> 123</a>
       const globalRankMatch = html.match(/Global Rank:<\/strong>\s*(\d+)/i);
-      const globalRank = globalRankMatch ? globalRankMatch[1] : undefined;
+      
+      // Determine the "Named Rank" based on rating points (Verified via User Image)
+      // <= 1399 : 1 Star
+      // 1400 - 1599 : 2 Stars
+      // 1600 - 1799 : 3 Stars
+      // 1800 - 1999 : 4 Stars
+      // 2000 - 2199 : 5 Stars
+      // 2200 - 2499 : 6 Stars
+      // >= 2500 : 7 Stars
+      
+      let calculatedStar = 1;
+      if (rating >= 2500) calculatedStar = 7;
+      else if (rating >= 2200) calculatedStar = 6;
+      else if (rating >= 2000) calculatedStar = 5;
+      else if (rating >= 1800) calculatedStar = 4;
+      else if (rating >= 1600) calculatedStar = 3;
+      else if (rating >= 1400) calculatedStar = 2;
+      
+      // Handle "Star" vs "Stars" pluralization as per official branding
+      const starSuffix = calculatedStar === 1 ? 'Star' : 'Stars';
+      let parsedRank = `${calculatedStar} ${starSuffix}`;
 
       // 5. Problems Solved
-      // usually inside <section class="problems-solved"> ... (Total: 450) ... </section>
-      // Or in standard text: Fully Solved (123)
       const solvedMatch = html.match(/Fully Solved \s*\((\d+)\)/);
       const problemsSolved = solvedMatch ? parseInt(solvedMatch[1], 10) : 0;
 
       // 6. Name and Avatar
-      const avatarMatch = html.match(/<img src="([^"]+)"[^>]*class="user-img/); // Heuristic
-      // Often default avatar if not found
+      const avatarMatch = html.match(/<img src="([^"]+)"[^>]*class="user-img/); 
       
       // 7. Name
-      // <h1>Meet Thakur</h1> or similar
       const nameMatch = html.match(/<h1[^>]*>(?:<span[^>]*>)?([^<]+)(?:<\/span>)?<\/h1>/);
 
       return {
         handle,
         rating,
         maxRating,
-        rank: globalRank,
+        rank: parsedRank, // Return "3 Star" instead of "1234"
+        globalRank: globalRankMatch ? parseInt(globalRankMatch[1], 10) : undefined,
         problemsSolved,
         avatar: avatarMatch ? avatarMatch[1] : undefined,
         name: nameMatch ? nameMatch[1].trim() : handle,

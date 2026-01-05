@@ -73,7 +73,7 @@ export default function DashboardScreen() {
                 showsHorizontalScrollIndicator={false} 
                 contentContainerStyle={styles.profileList}
                 decelerationRate="fast"
-                snapToInterval={styles.profileList.paddingHorizontal}
+                snapToInterval={316} // 300 width + 16 margin
             >
               {profiles.map(profile => (
                 <ProfileCard key={profile.id} profile={profile} />
@@ -129,24 +129,26 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   header: {
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+    marginBottom: 0,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-    marginBottom: 0,
+    alignItems: 'center'
   },
   date: {
       fontSize: 12,
       color: colors.text.muted,
       fontWeight: 'bold',
-      letterSpacing: 1,
-      marginBottom: 2
+      letterSpacing: 2,
+      marginBottom: 0,
+      textTransform: 'uppercase'
   },
   headerTitle: {
-    fontSize: 28,
-    fontWeight: '700',
+    fontSize: 32,
+    fontWeight: '900',
     color: colors.text.primary,
+    letterSpacing: -1
   },
   content: {
     paddingBottom: 80,
@@ -159,20 +161,22 @@ const styles = StyleSheet.create({
     paddingVertical: 10
   },
   addCardPlaceholder: {
-      width: 80,
-      height: 170,
-      borderRadius: 24,
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderStyle: 'dashed',
+      width: 100,
+      height: 260, // Match ProfileCard height
       justifyContent: 'center',
       alignItems: 'center',
-      marginRight: 24
+      marginRight: 16,
+      backgroundColor: 'transparent',
+      borderWidth: 2,
+      borderColor: colors.border,
+      borderStyle: 'dashed'
   },
   addText: {
       color: colors.text.muted,
       fontSize: 12,
-      marginTop: -10
+      marginTop: 8,
+      fontWeight: 'bold',
+      textTransform: 'uppercase'
   },
   emptyState: {
     alignItems: 'center',
@@ -180,33 +184,36 @@ const styles = StyleSheet.create({
     padding: 32,
     marginHorizontal: 24,
     backgroundColor: colors.surface,
-    borderRadius: 24,
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: colors.border,
   },
   emptyText: {
     color: colors.text.primary,
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '900',
     marginTop: 16,
+    textTransform: 'uppercase'
   },
   emptySubText: {
     color: colors.text.secondary,
     textAlign: 'center',
     marginTop: 8,
-    marginBottom: 20
+    marginBottom: 20,
+    fontSize: 12
   },
   connectButton: {
       backgroundColor: colors.primary,
+      borderRadius: 0 
   },
   timelineSection: {
       paddingHorizontal: 24,
   },
   sectionTitle: {
-      fontSize: 18,
-      fontWeight: '700',
+      fontSize: 20,
+      fontWeight: '900',
       color: colors.text.primary,
       marginBottom: 20,
+      letterSpacing: 1
   },
   timelineContainer: {
      // Container for timeline items
@@ -220,6 +227,6 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: colors.primary,
-    borderRadius: 16,
+    borderRadius: 8,
   },
 });

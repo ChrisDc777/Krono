@@ -1,5 +1,4 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Dimensions, ScrollView, StyleSheet, View } from 'react-native';
 import { SegmentedButtons, Text } from 'react-native-paper';
@@ -78,17 +77,17 @@ export default function AnalyticsScreen() {
           <View style={{ gap: 20 }}>
             {/* Main Stats Grid */}
             <View style={styles.statsGrid}>
-              <LinearGradient colors={[colors.surfaceHighlight, colors.surface]} style={styles.statBox}>
+              <View style={styles.statBox}>
                  <Text style={styles.statValue}>{aggregateStats.totalSolved}</Text>
                  <Text style={styles.statLabel}>Total Solved</Text>
                  <MaterialCommunityIcons name="check-circle-outline" size={20} color={colors.status.success} style={styles.statIcon} />
-              </LinearGradient>
+              </View>
               
-              <LinearGradient colors={[colors.surfaceHighlight, colors.surface]} style={styles.statBox}>
+              <View style={styles.statBox}>
                  <Text style={styles.statValue}>{aggregateStats.highestRating}</Text>
                  <Text style={styles.statLabel}>Best Rating</Text>
                  <MaterialCommunityIcons name="trophy-outline" size={20} color={colors.accent} style={styles.statIcon} />
-              </LinearGradient>
+              </View>
             </View>
 
             {/* Problem Distribution Chart */}
@@ -227,12 +226,22 @@ const styles = StyleSheet.create({
   },
   statBox: {
       flex: 1,
-      borderRadius: 16,
+      borderRadius: 4, // Sharp
       padding: 16,
       alignItems: 'flex-start',
       position: 'relative',
-      borderWidth: 1,
-      borderColor: colors.border
+      borderWidth: 2, // Thick
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+      // Hard Shadow - Cyan
+      shadowColor: colors.secondary,
+      shadowOffset: { width: 4, height: 4 },
+      shadowOpacity: 1,
+      shadowRadius: 0,
+      elevation: 0,
+      marginTop: 4,
+      marginRight: 4,
+      marginBottom: 8
   },
   statValue: {
       fontSize: 24,

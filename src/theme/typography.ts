@@ -15,8 +15,8 @@ export const typography = {
     xxxl: 32,
   },
   weight: {
-    regular: '400',
-    medium: '500',
-    bold: '700',
+    regular: '600', // Brutalism avoids thin fonts
+    medium: '700',
+    bold: '900', // Super bold for headers
   },
 };

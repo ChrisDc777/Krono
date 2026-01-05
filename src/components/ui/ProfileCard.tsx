@@ -1,10 +1,11 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import React from 'react';
-import { Dimensions, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { colors } from '../../theme/colors';
 import { PLATFORMS } from '../../types/platform';
 import { UnifiedProfile } from '../../types/user';
+import { SleekCard } from './SleekCard';
 
 interface ProfileCardProps {
   profile: UnifiedProfile;
@@ -13,161 +14,164 @@ interface ProfileCardProps {
 const { width } = Dimensions.get('window');
 
 export const ProfileCard: React.FC<ProfileCardProps> = ({ profile }) => {
-  // Determine gradient based on platform color or theme
-  const platformColor = PLATFORMS[profile.platformId].color;
-  
-  // Custom dark gradient logic: Mix rich dark Slate with a hint of the platform color
-  // Default to Slate/Zinc if no match
-  const gradientColors = [colors.surfaceHighlight, colors.surface];
-  
-  return (
-    <View style={styles.shadowContainer}>
-    <LinearGradient
-      colors={[colors.surfaceHighlight, colors.background]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={styles.container}
-    >
-      <View style={styles.header}>
-        <View style={styles.platformIconContainer}>
-             <MaterialCommunityIcons name={PLATFORMS[profile.platformId].icon as any} size={20} color={platformColor} />
-             <Text style={styles.platformName}>{PLATFORMS[profile.platformId].name}</Text>
-        </View>
-        {profile.rank && (
-            <View style={[styles.rankBadge, { borderColor: platformColor, backgroundColor: 'rgba(0,0,0,0.3)' }]}>
-                <Text style={[styles.rankText, { color: platformColor }]}>{profile.rank}</Text>
-            </View>
-        )}
-      </View>
+  const router = useRouter();
 
-      <View style={styles.content}>
-        <View>
-             <Text style={styles.label}>RATING</Text>
-             <Text style={[styles.rating, { color: platformColor }]}>
-                {profile.rating}
+  const handlePress = () => {
+    // Navigate to profile details if needed
+    // router.push(`/profile/${profile.id}`);
+  };
+
+  const PlatformColors: Record<string, string> = {
+      leetcode: '#FFA116',
+      codeforces: '#EE2211', // Custom red
+      codechef: '#99CC00', // Lime for CodeChef
+      atcoder: '#1C1917', // Black for AtCoder (High Contrast)
+      geeksforgeeks: '#2F8D46',
+      codingninjas: '#D04D28'
+  };
+
+  // Determine Platform Brand Color
+  const brandColor = PlatformColors[profile.platformId] || '#1C1917';
+  
+  // Format rank for display
+  // Ensuring fallback to 'Unrated' doesn't override valid empty strings weirdly
+  const rankDisplay = (profile.rank && profile.rank !== 'Unrated') 
+      ? profile.rank.toUpperCase() 
+      : (profile.rating ? `RATED` : 'UNRATED'); // Fallback if rating exists but rank is missing
+  const globalRankDisplay = profile.globalRank ? `#${profile.globalRank}` : '-';
+
+  return (
+    <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
+      <SleekCard style={styles.container} variant="default" customShadowColor={brandColor}>
+        
+        {/* Row 1: Platform & Username */}
+        <View style={styles.topRow}>
+             <View style={styles.platformPill}>
+                 <MaterialCommunityIcons name={PLATFORMS[profile.platformId]?.icon as any || 'code-tags'} size={14} color={brandColor} />
+                 <Text style={[styles.platformText, { color: brandColor }]}>
+                     {PLATFORMS[profile.platformId]?.name.toUpperCase()}
+                 </Text>
+             </View>
+             <Text style={styles.username} numberOfLines={1}>@{profile.username}</Text>
+        </View>
+
+        {/* Row 2: Hero Rating */}
+        <View style={styles.heroSection}>
+             <Text style={[styles.heroRating, { color: brandColor }]}>
+                 {profile.rating || '-'}
              </Text>
-             {profile.maxRating && (
-                 <Text style={styles.maxRating}>Max: {profile.maxRating}</Text>
-             )}
+             <Text style={styles.heroLabel}>RATING</Text>
+        </View>
+
+        {/* Row 3: Rank Badge (The "Title") */}
+        <View style={[styles.rankBadge, { backgroundColor: brandColor }]}>
+             <Text style={styles.rankText}>{rankDisplay}</Text>
+        </View>
+
+        {/* Row 4: Stats Grid (Side by Side) */}
+        <View style={styles.statsGrid}>
+            <View style={styles.statItem}>
+                <Text style={styles.statLabel}>GLOBAL RANK</Text>
+                <Text style={styles.statValue}>{globalRankDisplay}</Text>
+            </View>
+            <View style={[styles.statItem, { alignItems: 'flex-end' }]}>
+                <Text style={styles.statLabel}>SOLVED</Text>
+                <Text style={styles.statValue}>{profile.problemsSolved}</Text>
+            </View>
         </View>
         
-        <View style={styles.rightStats}>
-            <Text style={styles.label}>SOLVED</Text>
-            <Text style={styles.solved}>{profile.problemsSolved}</Text>
-        </View>
-      </View>
-
-      <View style={styles.footer}>
-        <Text style={styles.handle} numberOfLines={1}>{profile.displayName}</Text>
-        <MaterialCommunityIcons name="chevron-right" size={20} color={colors.text.muted} />
-      </View>
-
-       {/* Decorative glow line at top */}
-       <View style={[styles.glowLine, { backgroundColor: platformColor }]} />
-    </LinearGradient>
-    </View>
+      </SleekCard>
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  shadowContainer: {
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-    elevation: 10,
-    marginBottom: 10,
-    marginRight: 16,
-  },
   container: {
-    width: width * 0.75, // 75% of screen width
-    height: 170,
-    borderRadius: 24,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
-    justifyContent: 'space-between',
-    overflow: 'hidden',
-    position: 'relative'
+    width: 300, // Fixed width for carousel
+    minHeight: 260, 
+    marginRight: 16, // Horizontal spacing
+    marginBottom: 0, 
+    justifyContent: 'space-between'
   },
-  glowLine: {
-    position: 'absolute',
-    top: 0,
-    left: 20,
-    right: 20,
-    height: 1,
-    opacity: 0.5,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  platformIconContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 6
-  },
-  platformName: {
-      color: colors.text.secondary,
-      fontSize: 12,
-      fontWeight: '600',
-      letterSpacing: 0.5,
-      textTransform: 'uppercase'
-  },
-  rankBadge: {
-      paddingHorizontal: 8,
-      paddingVertical: 2,
-      borderRadius: 12,
-      borderWidth: 1,
-  },
-  rankText: {
-      fontSize: 10,
-      fontWeight: 'bold',
-  },
-  content: {
+  topRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      alignItems: 'flex-end',
-      marginVertical: 10
+      alignItems: 'center',
+      marginBottom: 10
   },
-  label: {
+  platformPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.background,
+      paddingHorizontal: 8,
+      paddingVertical: 5,
+      borderRadius: 12, // Softer
+      borderWidth: 1,
+      borderColor: colors.border
+  },
+  platformText: {
       fontSize: 10,
-      color: colors.text.muted,
-      fontWeight: 'bold',
-      marginBottom: 2,
-      letterSpacing: 1
+      fontWeight: '900',
+      marginLeft: 4,
+      letterSpacing: 0.5
   },
-  rating: {
-      fontSize: 32,
-      fontWeight: '800',
-      letterSpacing: -1
-  },
-  maxRating: {
-      fontSize: 11,
-      color: colors.text.muted,
-      marginTop: 2
-  },
-  rightStats: {
-      alignItems: 'flex-end'
-  },
-  solved: {
-      fontSize: 24,
-      fontWeight: 'bold',
+  username: {
+      fontSize: 14,
+      fontWeight: '700',
       color: colors.text.primary
   },
-  footer: {
+  heroSection: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: -10,
+      marginBottom: 10
+  },
+  heroRating: {
+      fontSize: 56,
+      fontWeight: '900',
+      lineHeight: 60,
+      letterSpacing: -1
+  },
+  heroLabel: {
+      fontSize: 10,
+      fontWeight: '900',
+      color: colors.text.muted,
+      letterSpacing: 2,
+      marginTop: 0
+  },
+  rankBadge: {
+      paddingVertical: 8,
+      borderRadius: 12, // Softer matches card
+      alignItems: 'center',
+      marginBottom: 16,
+      width: '100%'
+  },
+  rankText: {
+      color: colors.text.inverse,
+      fontSize: 14,
+      fontWeight: '900',
+      letterSpacing: 1,
+      textTransform: 'uppercase'
+  },
+  statsGrid: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingTop: 12,
-      borderTopWidth: 1,
-      borderTopColor: 'rgba(255,255,255,0.05)'
+      borderTopWidth: 2,
+      borderTopColor: colors.background,
+      paddingTop: 12
   },
-  handle: {
+  statItem: {
+      justifyContent: 'center'
+  },
+  statLabel: {
+      fontSize: 9,
+      fontWeight: '900',
+      color: colors.text.muted,
+      marginBottom: 2
+  },
+  statValue: {
       fontSize: 14,
-      color: colors.text.primary,
-      fontWeight: '500',
-      maxWidth: '80%'
+      fontWeight: '900',
+      color: colors.text.primary
   }
 });

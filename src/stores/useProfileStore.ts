@@ -31,32 +31,49 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   },
 
   addProfile: async (platform: PlatformId, handle: string) => {
-    // Placeholder: Fetch from API integration later
-    // For now we'll just simulate adding a user
-    
-    // Check if already exists
+    // Check if already exists in store
     const id = `${platform}:${handle}`;
     if (get().profiles.find(p => p.id === id)) {
       return; 
     }
 
-    // TODO: Call actual API here
-    const newProfile: UnifiedProfile = {
-      id,
-      platformId: platform,
-      username: handle,
-      displayName: handle, // Default
-      rating: 0,
-      maxRating: 0,
-      problemsSolved: 0,
-      totalSubmissions: 0,
-      badges: [],
-      lastUpdated: new Date(),
-      isStale: false
-    };
+    set({ isLoading: true, error: null });
 
-    await saveProfile(newProfile);
-    set(state => ({ profiles: [...state.profiles, newProfile] }));
+    try {
+      let newProfile: UnifiedProfile | null = null;
+
+      if (platform === 'codeforces') {
+        const { codeforcesApi } = await import('../api/codeforces');
+        const { normalizeCodeforcesProfile } = await import('../services/dataNormalizer');
+
+        // Fetch data in parallel
+        const [userInfo, ratingHistory, submissions] = await Promise.all([
+          codeforcesApi.getUserInfo(handle),
+          codeforcesApi.getUserRating(handle).catch(() => []), // Handle might have no history
+          codeforcesApi.getUserSubmissions(handle).catch(() => [])
+        ]);
+
+        newProfile = normalizeCodeforcesProfile(userInfo, ratingHistory, submissions);
+      } 
+      // Add other platforms here...
+
+      if (newProfile) {
+        await saveProfile(newProfile);
+        set(state => ({ 
+          profiles: [...state.profiles, newProfile],
+          isLoading: false
+        }));
+      } else {
+        throw new Error(`Platform ${platform} not yet implemented`);
+      }
+
+    } catch (error: any) {
+      console.error('Failed to add profile:', error);
+      set({ 
+        error: error.message || 'Failed to add profile', 
+        isLoading: false 
+      });
+    }
   },
 
   refreshProfile: async (id: string) => {

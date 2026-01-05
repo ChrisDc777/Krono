@@ -1,8 +1,9 @@
 import { create } from 'zustand';
+import { codechefApi } from '../api/codechef';
 import { codeforcesApi } from '../api/codeforces';
 import { leetcodeApi } from '../api/leetcode';
 import { deleteAllProfiles, deleteProfile, getAllProfiles, saveProfile } from '../database/repositories/profileRepository';
-import { normalizeCodeforcesProfile, normalizeLeetCodeProfile } from '../services/dataNormalizer';
+import { normalizeCodeChefProfile, normalizeCodeforcesProfile, normalizeLeetCodeProfile } from '../services/dataNormalizer';
 import { PlatformId } from '../types/platform';
 import { UnifiedProfile } from '../types/user';
 
@@ -68,6 +69,15 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         }
 
         newProfile = normalizeLeetCodeProfile(userData, contestData);
+      } else if (platform === 'codechef') {
+        // Scrape user data
+        const userData = await codechefApi.getUserInfo(handle);
+        if (!userData || !userData.rating) {
+           // If scraping completely fails or returns empty data, we might throw or return partial
+           // userData is guaranteed to be an object from our api wrapper, but rating might be 0
+           if (!userData.name && !userData.rating) throw new Error('User not found or profile hidden');
+        }
+        newProfile = normalizeCodeChefProfile(userData);
       }
       // Add other platforms here...
 

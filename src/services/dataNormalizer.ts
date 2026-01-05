@@ -152,3 +152,58 @@ export const normalizeLeetCodeContest = (lcContest: any): Contest => {
     scheduledReminders: []
   };
 };
+
+// ==================== CODECHEF NORMALIZERS ====================
+
+export const normalizeCodeChefProfile = (userData: any): UnifiedProfile => {
+  return {
+    id: `codechef:${userData.handle}`,
+    platformId: 'codechef',
+    username: userData.handle,
+    displayName: userData.name || userData.handle,
+    avatar: userData.avatar,
+    
+    rating: userData.rating,
+    maxRating: userData.maxRating,
+    rank: userData.rank ? `#${userData.rank}` : undefined,
+    
+    problemsSolved: userData.problemsSolved,
+    // Since we scrape, we might not have total submissions, use solved count as fallback or 0
+    totalSubmissions: userData.problemsSolved, 
+    
+    badges: [],
+    
+    lastUpdated: new Date(),
+    isStale: false
+  };
+};
+
+export const normalizeCodeChefContest = (ccContest: any): Contest => {
+  // ccContest.contest_start_date_iso is "2026-01-05T18:00:00+05:30"
+  // ccContest.contest_end_date_iso is "2026-01-05T21:00:00+05:30"
+  const startTime = new Date(ccContest.contest_start_date_iso);
+  const endTime = new Date(ccContest.contest_end_date_iso);
+  
+  // duration is in minutes in the JSON string "180", convert to seconds
+  const durationSeconds = parseInt(ccContest.contest_duration, 10) * 60;
+  const now = new Date();
+
+  let phase: ContestPhase = 'upcoming';
+  if (now > endTime) phase = 'finished';
+  else if (now >= startTime && now <= endTime) phase = 'running';
+
+  return {
+    id: `codechef:${ccContest.contest_code}`,
+    externalId: ccContest.contest_code,
+    platformId: 'codechef',
+    name: ccContest.contest_name,
+    startTime,
+    endTime,
+    durationSeconds,
+    url: `https://www.codechef.com/${ccContest.contest_code}`,
+    isRated: true, // Internal API implies distinct users > 0 usually rated, assuming true
+    phase,
+    reminderSet: false,
+    scheduledReminders: []
+  };
+};

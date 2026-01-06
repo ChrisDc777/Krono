@@ -1,22 +1,26 @@
+
+const fontConfig = {
+  displayLarge: { fontFamily: 'Inter_900Black', fontSize: 57, fontWeight: '900', letterSpacing: 0, lineHeight: 64 },
+  displayMedium: { fontFamily: 'Inter_900Black', fontSize: 45, fontWeight: '900', letterSpacing: 0, lineHeight: 52 },
+  displaySmall: { fontFamily: 'Inter_900Black', fontSize: 36, fontWeight: '900', letterSpacing: 0, lineHeight: 44 },
+  
+  headlineLarge: { fontFamily: 'Inter_700Bold', fontSize: 32, fontWeight: '700', letterSpacing: 0, lineHeight: 40 },
+  headlineMedium: { fontFamily: 'Inter_700Bold', fontSize: 28, fontWeight: '700', letterSpacing: 0, lineHeight: 36 },
+  headlineSmall: { fontFamily: 'Inter_700Bold', fontSize: 24, fontWeight: '700', letterSpacing: 0, lineHeight: 32 },
+  
+  titleLarge: { fontFamily: 'Inter_600SemiBold', fontSize: 22, fontWeight: '600', letterSpacing: 0, lineHeight: 28 },
+  titleMedium: { fontFamily: 'Inter_600SemiBold', fontSize: 16, fontWeight: '600', letterSpacing: 0.15, lineHeight: 24 },
+  titleSmall: { fontFamily: 'Inter_600SemiBold', fontSize: 14, fontWeight: '600', letterSpacing: 0.1, lineHeight: 20 },
+  
+  labelLarge: { fontFamily: 'Inter_700Bold', fontSize: 14, fontWeight: '700', letterSpacing: 0.1, lineHeight: 20 },
+  labelMedium: { fontFamily: 'Inter_700Bold', fontSize: 12, fontWeight: '700', letterSpacing: 0.5, lineHeight: 16 },
+  labelSmall: { fontFamily: 'Inter_700Bold', fontSize: 11, fontWeight: '700', letterSpacing: 0.5, lineHeight: 16 },
+  
+  bodyLarge: { fontFamily: 'Inter_400Regular', fontSize: 16, fontWeight: '400', letterSpacing: 0.15, lineHeight: 24 },
+  bodyMedium: { fontFamily: 'Inter_400Regular', fontSize: 14, fontWeight: '400', letterSpacing: 0.25, lineHeight: 20 },
+  bodySmall: { fontFamily: 'Inter_400Regular', fontSize: 12, fontWeight: '400', letterSpacing: 0.4, lineHeight: 16 },
+};
+
 export const typography = {
-  fontFamily: {
-    regular: 'System',
-    medium: 'System',
-    bold: 'System',
-    monospace: 'System', // Use a monospace font in real app
-  },
-  size: {
-    xs: 10,
-    sm: 12,
-    md: 14,
-    lg: 16,
-    xl: 20,
-    xxl: 24,
-    xxxl: 32,
-  },
-  weight: {
-    regular: '600', // Brutalism avoids thin fonts
-    medium: '700',
-    bold: '900', // Super bold for headers
-  },
+    fonts: fontConfig,
 };

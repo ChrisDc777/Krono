@@ -68,13 +68,9 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile }) => {
              <Text style={styles.rankText}>{rankDisplay}</Text>
         </View>
 
-        {/* Row 4: Stats Grid (Side by Side) */}
+        {/* Row 4: Stats Grid (Solved Only) */}
         <View style={styles.statsGrid}>
-            <View style={styles.statItem}>
-                <Text style={styles.statLabel}>GLOBAL RANK</Text>
-                <Text style={styles.statValue}>{globalRankDisplay}</Text>
-            </View>
-            <View style={[styles.statItem, { alignItems: 'flex-end' }]}>
+            <View style={[styles.statItem, { alignItems: 'center', width: '100%' }]}>
                 <Text style={styles.statLabel}>SOLVED</Text>
                 <Text style={styles.statValue}>{profile.problemsSolved}</Text>
             </View>

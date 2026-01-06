@@ -212,9 +212,11 @@ export const normalizeCodeChefContest = (ccContest: any): Contest => {
 
 export const normalizeAtCoderProfile = (userData: any): UnifiedProfile => {
   const rating = userData.rating || 0;
-  let rankTitle = 'Unrated';
+  // Use scraped rank if available, otherwise default to Unrated/Calculated
+  let rankTitle = userData.rank || 'Unrated';
 
-  if (rating > 0) {
+  // Only calculate if NO scraped rank gave us a value
+  if (!userData.rank && rating > 0) {
       if (rating >= 3200) rankTitle = '7 Dan+';
       else if (rating >= 2800) rankTitle = '5-6 Dan';
       else if (rating >= 2600) rankTitle = '4 Dan'; // Inferred from image gap

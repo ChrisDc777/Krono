@@ -108,8 +108,22 @@ export const codechefApi = {
       let parsedRank = `${calculatedStar} ${starSuffix}`;
 
       // 5. Problems Solved
-      const solvedMatch = html.match(/Fully Solved \s*\((\d+)\)/);
-      const problemsSolved = solvedMatch ? parseInt(solvedMatch[1], 10) : 0;
+      // 5. Problems Solved
+      let problemsSolved = 0;
+      const solvedPatterns = [
+          /Fully Solved\s*\((\d+)\)/i, // Standard: Fully Solved (595)
+          /Problems Solved\s*:\s*(\d+)/i, // Variation
+          />\s*Solved\s*:\s*(\d+)/i,
+          /class="content"\s*>\s*(\d+)\s*<\/h5>/ // Sometimes inside h5 content block
+      ];
+
+      for (const pattern of solvedPatterns) {
+          const match = html.match(pattern);
+          if (match) {
+              problemsSolved = parseInt(match[1], 10);
+              break;
+          }
+      }
 
       // 6. Name and Avatar
       const avatarMatch = html.match(/<img src="([^"]+)"[^>]*class="user-img/); 

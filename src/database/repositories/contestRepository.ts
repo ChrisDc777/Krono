@@ -65,7 +65,13 @@ export const getUpcomingContests = async (): Promise<Contest[]> => {
     [now]
   );
   
-  return rows.map(mapRowToContest);
+  return rows
+    .map(mapRowToContest)
+    .filter(c => {
+        const title = c.name.toLowerCase();
+        // Global filter to ensure no forecasts or jobs leak through
+        return !title.includes('forecast') && !title.includes('job');
+    });
 };
 
 export const getAllContests = async (): Promise<Contest[]> => {

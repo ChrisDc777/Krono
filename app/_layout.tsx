@@ -14,6 +14,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect } from 'react';
 import { MD3LightTheme, PaperProvider } from 'react-native-paper';
+import { registerBackgroundTask } from '../src/services/backgroundTask';
 import { useThemeStore } from '../src/stores/useThemeStore';
 import { colors } from '../src/theme/colors';
 import { typography } from '../src/theme/typography';
@@ -55,6 +56,9 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
+    // Initialize background sync
+    registerBackgroundTask();
+
     if (fontsLoaded) {
       SplashScreen.hideAsync();
     }

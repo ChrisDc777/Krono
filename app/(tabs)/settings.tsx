@@ -14,11 +14,21 @@ import {
 } from 'react-native-paper';
 import { useTheme } from '../../src/hooks/useTheme';
 import { useProfileStore } from '../../src/stores/useProfileStore';
+import { useSettingsStore } from '../../src/stores/useSettingsStore';
 import { PLATFORMS, PlatformId } from '../../src/types/platform';
 
 export default function SettingsScreen() {
   const { colors, isDarkMode, toggleTheme } = useTheme();
   const { profiles, addProfile, removeProfile, isLoading } = useProfileStore();
+  const { 
+      notificationsEnabled, 
+      reminderIntervals, 
+      backgroundSyncEnabled,
+      toggleNotifications, 
+      toggleInterval, 
+      toggleBackgroundSync 
+  } = useSettingsStore();
+
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<PlatformId | null>(null);
   const [username, setUsername] = useState('');
@@ -90,19 +100,27 @@ export default function SettingsScreen() {
               description="Get notified before contests start"
               titleStyle={{ color: colors.text.primary, fontWeight: '700' }}
               descriptionStyle={{ color: colors.text.secondary }}
-              right={() => <Switch value={true} color={colors.primary} />}
+              right={() => <Switch value={notificationsEnabled} onValueChange={toggleNotifications} color={colors.primary} />}
             />
             <Divider style={{ backgroundColor: colors.border, height: 1 }} />
             <List.Item
               title="15 minutes before"
               titleStyle={{ color: colors.text.primary, fontWeight: '600', fontSize: 13 }}
-              right={() => <Switch value={true} color={colors.primary} />}
+              right={() => <Switch value={reminderIntervals.includes(15)} onValueChange={() => toggleInterval(15)} color={colors.primary} disabled={!notificationsEnabled} />}
             />
             <Divider style={{ backgroundColor: colors.border, height: 1 }} />
             <List.Item
               title="1 hour before"
               titleStyle={{ color: colors.text.primary, fontWeight: '600', fontSize: 13 }}
-              right={() => <Switch value={false} color={colors.primary} />}
+              right={() => <Switch value={reminderIntervals.includes(60)} onValueChange={() => toggleInterval(60)} color={colors.primary} disabled={!notificationsEnabled} />}
+            />
+             <Divider style={{ backgroundColor: colors.border, height: 1 }} />
+            <List.Item
+              title="Background Sync"
+              description="Check for new contests periodically"
+              titleStyle={{ color: colors.text.primary, fontWeight: '700', fontSize: 13 }}
+              descriptionStyle={{ color: colors.text.secondary }}
+              right={() => <Switch value={backgroundSyncEnabled} onValueChange={toggleBackgroundSync} color={colors.primary} />}
             />
           </View>
         </View>

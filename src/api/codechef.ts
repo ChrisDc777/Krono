@@ -103,8 +103,8 @@ export const codechefApi = {
       else if (rating >= 1600) calculatedStar = 3;
       else if (rating >= 1400) calculatedStar = 2;
       
-      // Handle "Star" vs "Stars" pluralization as per official branding
-      const starSuffix = calculatedStar === 1 ? 'Star' : 'Stars';
+      // Handle "Star" suffix - User requested singular "Star" always
+      const starSuffix = 'Star';
       let parsedRank = `${calculatedStar} ${starSuffix}`;
 
       // 5. Problems Solved

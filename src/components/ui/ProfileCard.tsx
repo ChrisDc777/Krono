@@ -23,8 +23,8 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile }) => {
 
   const PlatformColors: Record<string, string> = {
       leetcode: '#FFA116',
-      codeforces: '#EE2211', // Custom red
-      codechef: '#99CC00', // Lime for CodeChef
+      codeforces: '#1877F2', // Custom Blue as requested
+      codechef: '#8B4513', // Brown for CodeChef
       atcoder: '#1C1917', // Black for AtCoder (High Contrast)
       geeksforgeeks: '#2F8D46',
       codingninjas: '#D04D28'

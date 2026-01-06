@@ -165,7 +165,7 @@ export const normalizeCodeChefProfile = (userData: any): UnifiedProfile => {
     
     rating: userData.rating,
     maxRating: userData.maxRating,
-    rank: userData.rank ? `#${userData.rank}` : undefined,
+    rank: userData.rank, // Removed hardcoded '#' as rank is now "3 Star"
     
     problemsSolved: userData.problemsSolved,
     // Since we scrape, we might not have total submissions, use solved count as fallback or 0
@@ -211,19 +211,40 @@ export const normalizeCodeChefContest = (ccContest: any): Contest => {
 // ==================== ATCODER NORMALIZERS ====================
 
 export const normalizeAtCoderProfile = (userData: any): UnifiedProfile => {
+  const rating = userData.rating || 0;
+  let rankTitle = 'Unrated';
+
+  if (rating > 0) {
+      if (rating >= 3200) rankTitle = '7 Dan+';
+      else if (rating >= 2800) rankTitle = '5-6 Dan';
+      else if (rating >= 2600) rankTitle = '4 Dan'; // Inferred from image gap
+      else if (rating >= 2400) rankTitle = '3 Dan';
+      else if (rating >= 2200) rankTitle = '2 Dan';
+      else if (rating >= 2000) rankTitle = '1 Dan';
+      else if (rating >= 1800) rankTitle = '1 Kyu';
+      else if (rating >= 1600) rankTitle = '2 Kyu';
+      else if (rating >= 1400) rankTitle = '3 Kyu';
+      else if (rating >= 1200) rankTitle = '4 Kyu';
+      else if (rating >= 1000) rankTitle = '5 Kyu';
+      else if (rating >= 800) rankTitle = '6 Kyu';
+      else if (rating >= 600) rankTitle = '7 Kyu';
+      else if (rating >= 400) rankTitle = '8 Kyu';
+      else rankTitle = '9 Kyu';
+  }
+
   return {
     id: `atcoder:${userData.handle}`,
     platformId: 'atcoder',
     username: userData.handle,
-    displayName: userData.handle, // AtCoder doesn't expose real name easily
+    displayName: userData.handle,
     avatar: userData.avatar,
     
-    rating: userData.rating,
+    rating: rating,
     maxRating: userData.maxRating,
-    rank: userData.rank, // Often undefined
+    rank: rankTitle,
     
     problemsSolved: userData.problemsSolved,
-    totalSubmissions: 0, // Not easily available without aggregating huge data
+    totalSubmissions: 0,
     
     badges: [],
     

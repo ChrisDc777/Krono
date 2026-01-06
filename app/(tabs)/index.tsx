@@ -12,7 +12,7 @@ import { colors } from '../../src/theme/colors';
 
 export default function DashboardScreen() {
   const router = useRouter();
-  const { profiles, loadProfiles, isLoading: isProfileLoading } = useProfileStore();
+  const { profiles, loadProfiles, refreshProfiles, isLoading: isProfileLoading } = useProfileStore();
   const { upcomingContests, loadContests, syncContests, isLoading: isContestLoading } = useContestStore();
 
   useEffect(() => {
@@ -24,7 +24,9 @@ export default function DashboardScreen() {
     router.push('/settings');
   };
 
-  const handleSync = () => {
+  const handleSync = async () => {
+    // specific order: sync profiles first, then contests
+    refreshProfiles(); 
     syncContests();
   };
 
@@ -48,7 +50,11 @@ export default function DashboardScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={isContestLoading} onRefresh={handleSync} tintColor={colors.primary} />
+          <RefreshControl 
+                refreshing={isContestLoading || isProfileLoading} 
+                onRefresh={handleSync} 
+                tintColor={colors.primary} 
+          />
         }
       >
         {/* Profile Statistics Carousel */}

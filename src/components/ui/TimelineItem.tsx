@@ -21,8 +21,8 @@ export const TimelineItem: React.FC<TimelineItemProps> = ({ contest, isLast = fa
 
   const getBrandColor = () => {
        if (contest.platformId === 'leetcode') return '#FFA116'; 
-       if (contest.platformId === 'codechef') return '#5B4638'; 
-       if (contest.platformId === 'codeforces') return '#EE2211'; 
+       if (contest.platformId === 'codechef') return '#8B4513'; // Brown
+       if (contest.platformId === 'codeforces') return '#1877F2'; // Blue
        return '#1C1917';
   };
 

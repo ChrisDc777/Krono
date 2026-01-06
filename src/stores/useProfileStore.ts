@@ -120,20 +120,56 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
   },
 
   refreshProfiles: async () => {
-    // For now, simple re-fetch from DB or maybe re-trigger addProfile logic (expensive)
-    // Ideally we would have a refresh logic that goes to API for each profile.
-    // Given the current scope, let's just reload from DB in case background tasks ran.
-    // Or we could iterate and re-add.
+    set({ isLoading: true });
+    const { profiles } = get();
     
-    // Simplest reliable refresh:
-    const { profiles, addProfile } = get();
-    // This is potentually dangerous if it duplicates or errors out.
-    // A proper refresh would use a separate updateProfile function.
-    // For now let's just allow loading.
-    
-    // Actually, task requirement implies we might want to refresh data.
-    // Let's leave it as a placeholder or simple reload for now.
-    const dbProfiles = await getAllProfiles();
-    set({ profiles: dbProfiles });
+    try {
+      // Create an array of promises to fetch updated data for each profile
+      await Promise.all(profiles.map(async (profile) => {
+        try {
+          const { platformId, username } = profile;
+          let newProfile: UnifiedProfile | null = null;
+
+          if (platformId === 'codeforces') {
+            const [userInfo, ratingHistory, submissions] = await Promise.all([
+              codeforcesApi.getUserInfo(username),
+              codeforcesApi.getUserRating(username).catch(() => []),
+              codeforcesApi.getUserSubmissions(username, 5000).catch(() => [])
+            ]);
+            newProfile = normalizeCodeforcesProfile(userInfo, ratingHistory, submissions);
+          } else if (platformId === 'leetcode') {
+            const userData = await leetcodeApi.getUserProfile(username);
+             if (userData && userData.matchedUser) {
+                 const contestData = await leetcodeApi.getUserContestRanking(username).catch(() => null);
+                 newProfile = normalizeLeetCodeProfile(userData, contestData);
+             }
+          } else if (platformId === 'codechef') {
+            const userData = await codechefApi.getUserInfo(username);
+            if (userData) {
+                newProfile = normalizeCodeChefProfile(userData);
+            }
+          } else if (platformId === 'atcoder') {
+            const userData = await atcoderApi.getUserInfo(username);
+            if (userData) {
+                newProfile = normalizeAtCoderProfile(userData);
+            }
+          }
+
+          if (newProfile) {
+            await saveProfile(newProfile);
+          }
+        } catch (err) {
+          console.error(`Failed to refresh profile ${profile.id}:`, err);
+          // Continue with other profiles even if one fails
+        }
+      }));
+
+      // Reload updated data from DB
+      const updatedProfiles = await getAllProfiles();
+      set({ profiles: updatedProfiles, isLoading: false });
+    } catch (error) {
+      console.error('Global refresh error:', error);
+      set({ isLoading: false });
+    }
   }
 }));

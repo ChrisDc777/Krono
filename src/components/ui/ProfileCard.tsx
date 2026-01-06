@@ -2,7 +2,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../hooks/useTheme';
 import { PLATFORMS } from '../../types/platform';
 import { UnifiedProfile } from '../../types/user';
 import { SleekCard } from './SleekCard';
@@ -15,6 +15,7 @@ const { width } = Dimensions.get('window');
 
 export const ProfileCard: React.FC<ProfileCardProps> = ({ profile }) => {
   const router = useRouter();
+  const { colors, isDarkMode } = useTheme();
 
   const handlePress = () => {
     // Navigate to profile details if needed
@@ -25,13 +26,13 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile }) => {
       leetcode: '#FFA116',
       codeforces: '#1877F2', // Custom Blue as requested
       codechef: '#8B4513', // Brown for CodeChef
-      atcoder: '#1C1917', // Black for AtCoder (High Contrast)
+      atcoder: isDarkMode ? '#FFFFFF' : '#1C1917', // Black for Light, White for Dark (High Contrast)
       geeksforgeeks: '#2F8D46',
       codingninjas: '#D04D28'
   };
 
   // Determine Platform Brand Color
-  const brandColor = PlatformColors[profile.platformId] || '#1C1917';
+  const brandColor = PlatformColors[profile.platformId] || colors.text.primary;
   
   // Format rank for display
   // Ensuring fallback to 'Unrated' doesn't override valid empty strings weirdly
@@ -46,13 +47,13 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile }) => {
         
         {/* Row 1: Platform & Username */}
         <View style={styles.topRow}>
-             <View style={styles.platformPill}>
+             <View style={[styles.platformPill, { backgroundColor: colors.background, borderColor: colors.border }]}>
                  <MaterialCommunityIcons name={PLATFORMS[profile.platformId]?.icon as any || 'code-tags'} size={14} color={brandColor} />
                  <Text style={[styles.platformText, { color: brandColor }]}>
                      {PLATFORMS[profile.platformId]?.name.toUpperCase()}
                  </Text>
              </View>
-             <Text style={styles.username} numberOfLines={1}>@{profile.username}</Text>
+             <Text style={[styles.username, { color: colors.text.primary }]} numberOfLines={1}>@{profile.username}</Text>
         </View>
 
         {/* Row 2: Hero Rating */}
@@ -60,19 +61,21 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile }) => {
              <Text style={[styles.heroRating, { color: brandColor }]}>
                  {profile.rating || '-'}
              </Text>
-             <Text style={styles.heroLabel}>RATING</Text>
+             <Text style={[styles.heroLabel, { color: colors.text.muted }]}>RATING</Text>
         </View>
 
         {/* Row 3: Rank Badge (The "Title") */}
         <View style={[styles.rankBadge, { backgroundColor: brandColor }]}>
-             <Text style={styles.rankText}>{rankDisplay}</Text>
+             <Text style={[styles.rankText, { 
+                 color: (profile.platformId === 'atcoder' && isDarkMode) ? '#000000' : '#FFFFFF' 
+             }]}>{rankDisplay}</Text>
         </View>
 
         {/* Row 4: Stats Grid (Solved Only) */}
-        <View style={styles.statsGrid}>
+        <View style={[styles.statsGrid, { borderTopColor: colors.background }]}>
             <View style={[styles.statItem, { alignItems: 'center', width: '100%' }]}>
-                <Text style={styles.statLabel}>SOLVED</Text>
-                <Text style={styles.statValue}>{profile.problemsSolved}</Text>
+                <Text style={[styles.statLabel, { color: colors.text.muted }]}>SOLVED</Text>
+                <Text style={[styles.statValue, { color: colors.text.primary }]}>{profile.problemsSolved}</Text>
             </View>
         </View>
         
@@ -98,12 +101,10 @@ const styles = StyleSheet.create({
   platformPill: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: colors.background,
       paddingHorizontal: 8,
       paddingVertical: 5,
       borderRadius: 12, // Softer
       borderWidth: 1,
-      borderColor: colors.border
   },
   platformText: {
       fontSize: 10,
@@ -114,7 +115,6 @@ const styles = StyleSheet.create({
   username: {
       fontSize: 14,
       fontWeight: '700',
-      color: colors.text.primary
   },
   heroSection: {
       alignItems: 'center',
@@ -131,7 +131,6 @@ const styles = StyleSheet.create({
   heroLabel: {
       fontSize: 10,
       fontWeight: '900',
-      color: colors.text.muted,
       letterSpacing: 2,
       marginTop: 0
   },
@@ -143,7 +142,6 @@ const styles = StyleSheet.create({
       width: '100%'
   },
   rankText: {
-      color: colors.text.inverse,
       fontSize: 14,
       fontWeight: '900',
       letterSpacing: 1,
@@ -153,7 +151,6 @@ const styles = StyleSheet.create({
       flexDirection: 'row',
       justifyContent: 'space-between',
       borderTopWidth: 2,
-      borderTopColor: colors.background,
       paddingTop: 12
   },
   statItem: {
@@ -162,12 +159,10 @@ const styles = StyleSheet.create({
   statLabel: {
       fontSize: 9,
       fontWeight: '900',
-      color: colors.text.muted,
       marginBottom: 2
   },
   statValue: {
       fontSize: 14,
       fontWeight: '900',
-      color: colors.text.primary
   }
 });

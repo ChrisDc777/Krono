@@ -55,7 +55,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
         // Get user profile including stats
         const userData = await leetcodeApi.getUserProfile(handle);
         
-        if (!userData || !userData.matchedUser) {
+        if (!userData) {
            throw new Error('User not found');
         }
 
@@ -139,7 +139,7 @@ export const useProfileStore = create<ProfileState>((set, get) => ({
             newProfile = normalizeCodeforcesProfile(userInfo, ratingHistory, submissions);
           } else if (platformId === 'leetcode') {
             const userData = await leetcodeApi.getUserProfile(username);
-             if (userData && userData.matchedUser) {
+             if (userData) {
                  const contestData = await leetcodeApi.getUserContestRanking(username).catch(() => null);
                  newProfile = normalizeLeetCodeProfile(userData, contestData);
              }

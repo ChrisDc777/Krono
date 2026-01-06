@@ -1,56 +1,85 @@
+import { format, isSameDay, parseISO } from 'date-fns';
+import * as WebBrowser from 'expo-web-browser';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { colors } from '../../theme/colors';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTheme } from '../../hooks/useTheme';
 import { Contest } from '../../types/contest';
 import { PLATFORMS } from '../../types/platform';
-import { formatContestTime, formatDuration } from '../../utils/dateUtils';
-import { SleekCard } from './SleekCard';
 
 interface TimelineItemProps {
   contest: Contest;
   isLast?: boolean;
 }
 
-export const TimelineItem: React.FC<TimelineItemProps> = ({ contest, isLast = false }) => {
-  const platform = PLATFORMS[contest.platformId];
-  
-  const startTime = new Date(contest.startTime);
-  const day = startTime.getDate();
-  const month = startTime.toLocaleString('default', { month: 'short' }).toUpperCase();
-  const time = formatContestTime(new Date(contest.startTime));
+export const TimelineItem: React.FC<TimelineItemProps> = ({ contest, isLast }) => {
+  const { colors, isDarkMode } = useTheme();
 
-  const getBrandColor = () => {
-       if (contest.platformId === 'leetcode') return '#FFA116'; 
-       if (contest.platformId === 'codechef') return '#8B4513'; // Brown
-       if (contest.platformId === 'codeforces') return '#1877F2'; // Blue
-       return '#1C1917';
+  const handlePress = async () => {
+    if (contest.url) {
+      await WebBrowser.openBrowserAsync(contest.url);
+    }
   };
 
-  const brandColor = getBrandColor();
+  const getBrandColor = (platformId: string) => {
+    switch(platformId) {
+        case 'codeforces': return '#1877F2';
+        case 'codechef': return '#8B4513';
+        case 'leetcode': return '#FFA116';
+        case 'atcoder': return isDarkMode ? '#FFFFFF' : '#1C1917';
+        case 'geeksforgeeks': return '#2F8D46';
+        case 'codingninjas': return '#D04D28';
+        default: return colors.primary;
+    }
+  };
+
+  const brandColor = getBrandColor(contest.platformId);
+  
+  // Handle startTime potentially being a string from JSON/DB or a Date object
+  const startTime = typeof contest.startTime === 'string' 
+      ? parseISO(contest.startTime) 
+      : contest.startTime;
+
+  const formattedTime = format(startTime, 'h:mm a');
+  const formattedDate = format(startTime, 'MMM d');
+  const isToday = isSameDay(startTime, new Date());
+  const durationHours = (contest.durationSeconds / 3600).toFixed(1);
 
   return (
     <View style={styles.container}>
-      {/* Left Time Column - Vertical Stack */}
-      <View style={styles.leftColumn}>
-        <Text style={styles.day}>{day}</Text>
-        <Text style={styles.month}>{month}</Text>
+      {/* Left: Time Column */}
+      <View style={styles.timeColumn}>
+        <Text style={[styles.timeText, { color: colors.text.primary }]}>{formattedTime}</Text>
+        <Text style={[styles.dateText, { color: colors.text.muted }]}>{isToday ? 'Today' : formattedDate}</Text>
+        {!isLast && <View style={[styles.timelineLine, { backgroundColor: colors.border }]} />}
       </View>
 
-      {/* Right Content - Wrapped Card */}
-      <View style={styles.content}>
-        <SleekCard style={styles.card} variant="default" customShadowColor={brandColor}>
-            <View style={styles.cardHeader}>
-                 <Text style={[styles.platformName, { color: brandColor }]}>{platform.name}</Text>
-                 <Text style={styles.timeLabel}>{time}</Text>
-            </View>
-            <Text style={styles.title} numberOfLines={2}>{contest.name}</Text>
-            <View style={styles.footer}>
-                <Text style={styles.duration}>
-                    {formatDuration(contest.durationSeconds)}
-                </Text>
-            </View>
-        </SleekCard>
-      </View>
+      {/* Right: Card */}
+       <TouchableOpacity 
+          style={[styles.cardContainer, { 
+              backgroundColor: colors.surface, 
+              borderColor: colors.border,
+              shadowColor: brandColor 
+          }]} 
+          onPress={handlePress}
+          activeOpacity={0.8}
+       >
+          <View style={[styles.accentStrip, { backgroundColor: brandColor }]} />
+          
+          <View style={styles.cardContent}>
+              <View style={styles.headerRow}>
+                  <Text style={[styles.platformName, { color: colors.text.secondary }]}>
+                      {PLATFORMS[contest.platformId]?.name.toUpperCase() || contest.platformId}
+                  </Text>
+                  <View style={[styles.durationBadge, { backgroundColor: colors.background }]}>
+                      <Text style={[styles.durationText, { color: colors.text.muted }]}>{durationHours}h</Text>
+                  </View>
+              </View>
+              
+              <Text style={[styles.contestTitle, { color: colors.text.primary }]} numberOfLines={2}>
+                  {contest.name}
+              </Text>
+          </View>
+       </TouchableOpacity>
     </View>
   );
 };
@@ -58,66 +87,62 @@ export const TimelineItem: React.FC<TimelineItemProps> = ({ contest, isLast = fa
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    marginBottom: 8,
-    paddingHorizontal: 4,
+    marginBottom: 0,
+    minHeight: 100
   },
-  leftColumn: {
-    width: 44,
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    paddingTop: 4, 
-    marginRight: 8
+  timeColumn: {
+    width: 60,
+    alignItems: 'flex-end',
+    paddingRight: 16,
+    paddingTop: 4
   },
-  day: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: colors.text.primary,
+  timeText: {
+    fontSize: 14,
+    fontWeight: '700',
   },
-  month: {
-      fontSize: 10,
-      fontWeight: 'bold',
-      color: colors.text.muted,
-      textTransform: 'uppercase'
+  dateText: {
+    fontSize: 10,
+    marginTop: 2,
+    fontWeight: '500',
   },
-  content: {
+  timelineLine: {
+    width: 2,
     flex: 1,
+    marginTop: 8,
+    marginRight: 6, // Center with text roughly
+    borderRadius: 1
   },
-  card: {
-      minHeight: 80,
-      marginRight: 0
+  cardContainer: {
+    flex: 1,
+    borderWidth: 2,
+    borderRadius: 12,
+    marginBottom: 20,
+    flexDirection: 'row',
+    overflow: 'hidden',
+    
+    // Hard Shadow
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
+    elevation: 0
   },
-  cardHeader: {
+  accentStrip: {
+      width: 6,
+      height: '100%'
+  },
+  cardContent: {
+      flex: 1,
+      padding: 12
+  },
+  headerRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
+      alignItems: 'center',
       marginBottom: 6
   },
   platformName: {
       fontSize: 10,
       fontWeight: '900',
-      textTransform: 'uppercase',
-      letterSpacing: 1
-  },
-  timeLabel: {
-    fontSize: 11,
-    color: colors.text.secondary,
-    fontWeight: '600'
-  },
-  title: {
-      fontSize: 14,
-      fontWeight: '700',
-      color: colors.text.primary,
-      lineHeight: 20,
-      marginBottom: 8
-  },
-  footer: {
-      flexDirection: 'row'
-  },
-  duration: {
-      fontSize: 10,
-      color: colors.text.inverse,
-      backgroundColor: colors.text.secondary,
-      paddingHorizontal: 6,
-      paddingVertical: 2,
-      fontWeight: 'bold'
+      letterSpacing: 0.5
   }
 });

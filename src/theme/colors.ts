@@ -1,11 +1,17 @@
 // Common platform colors remain the same
 const platformColors = {
-    codeforces: '#1C1917', 
-    leetcode: '#1C1917',   
-    codechef: '#1C1917',   
-    atcoder: '#1C1917',    
-    codingninjas: '#1C1917',
-    geeksforgeeks: '#1C1917',
+    codeforces: '#1877F2', // Blue
+    leetcode: '#FFA116',   // Orange
+    codechef: '#8B4513',   // Brown
+    atcoder: '#1C1917',    // Black (Light Mode default)
+    codingninjas: '#D04D28', // Orange-Red
+    geeksforgeeks: '#2F8D46', // Green
+};
+
+// Override specifically for Dark Mode
+const darkPlatformColors = {
+    ...platformColors,
+    atcoder: '#FFFFFF', // White for high contrast in dark mode
 };
 
 const commonStatus = {
@@ -41,9 +47,9 @@ export const lightColors = {
 
 export const darkColors = {
   background: '#0C0A09', // Stone 950
-  surface: '#1C1917',    // Stone 900
-  surfaceHighlight: '#292524', // Stone 800
-  border: '#57534E',     // Stone 600 (Softer border for dark mode)
+  surface: '#292524',    // Stone 800 (Lighter for contrast)
+  surfaceHighlight: '#44403C', // Stone 700
+  border: '#78716C',     // Stone 500 (Lighter border)
   
   primary: '#F5F5F4', // Stone 100 (White-ish)
   secondary: '#A8A29E', // Stone 400
@@ -64,7 +70,7 @@ export const darkColors = {
     warning: '#F59E0B', // Amber 500
     info: '#0EA5E9', // Sky 500
   },
-  platforms: platformColors,
+  platforms: darkPlatformColors,
 
   isDark: true
 };

@@ -4,13 +4,22 @@ import { RefreshControl, SectionList, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Chip, Searchbar, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TimelineItem } from '../../src/components/ui/TimelineItem';
+import { useTheme } from '../../src/hooks/useTheme';
 import { useContestStore } from '../../src/stores/useContestStore';
-import { colors } from '../../src/theme/colors';
 import { Contest } from '../../src/types/contest';
 import { PLATFORMS, PlatformId } from '../../src/types/platform';
 
 export default function ContestsScreen() {
-  const { upcomingContests, loadContests, syncContests, isLoading } = useContestStore();
+  const { colors, isDarkMode } = useTheme();
+  // ... (rest of component state)
+
+  // ... (inside return)
+              textStyle={{ 
+                  color: selectedPlatform === platform.id 
+                    ? (platform.id === 'atcoder' && isDarkMode ? '#000000' : '#FFFFFF') 
+                    : colors.text.primary,
+                  fontWeight: selectedPlatform === platform.id ? 'bold' : 'normal'
+              }}
   const [refreshing, setRefreshing] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<PlatformId | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -68,10 +77,10 @@ export default function ContestsScreen() {
   }, [upcomingContests, selectedPlatform, searchQuery]);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       <View style={styles.header}>
-         <Text style={styles.headerTitle}>Contests</Text>
-         <Text style={styles.headerSubtitle}>Upcoming schedule</Text>
+         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Contests</Text>
+         <Text style={[styles.headerSubtitle, { color: colors.text.secondary }]}>Upcoming schedule</Text>
       </View>
 
       <View style={styles.filterSection}>
@@ -79,7 +88,7 @@ export default function ContestsScreen() {
           placeholder="Search..."
           onChangeText={setSearchQuery}
           value={searchQuery}
-          style={styles.searchBar}
+          style={[styles.searchBar, { backgroundColor: colors.surface, borderColor: colors.border, shadowColor: colors.primary }]}
           placeholderTextColor={colors.text.secondary}
           iconColor={colors.text.secondary}
           inputStyle={{ color: colors.text.primary, minHeight: 40 }}
@@ -89,7 +98,7 @@ export default function ContestsScreen() {
           <Chip
             selected={selectedPlatform === 'all'}
             onPress={() => setSelectedPlatform('all')}
-            style={[styles.chip, selectedPlatform === 'all' && styles.chipSelected]}
+            style={[styles.chip, { backgroundColor: colors.surface, borderColor: colors.border }, selectedPlatform === 'all' && [styles.chipSelected, { backgroundColor: colors.text.primary, borderColor: colors.primary }]]}
             textStyle={{ color: selectedPlatform === 'all' ? colors.text.inverse : colors.text.primary }}
             showSelectedOverlay
           >
@@ -100,10 +109,14 @@ export default function ContestsScreen() {
               key={platform.id}
               selected={selectedPlatform === platform.id}
               onPress={() => setSelectedPlatform(platform.id)}
-              style={[styles.chip, selectedPlatform === platform.id && { backgroundColor: platform.color }]}
+              style={[
+                  styles.chip, 
+                  { backgroundColor: colors.surface, borderColor: colors.border }, 
+                  selectedPlatform === platform.id && { backgroundColor: platform.color, borderColor: platform.color }
+              ]}
               textStyle={{ 
                   color: selectedPlatform === platform.id 
-                    ? (platform.id === 'atcoder' ? '#000' : '#FFF') 
+                    ? (platform.id === 'atcoder' && isDarkMode ? '#000000' : '#FFFFFF') 
                     : colors.text.primary,
                   fontWeight: selectedPlatform === platform.id ? 'bold' : 'normal'
               }}
@@ -121,33 +134,63 @@ export default function ContestsScreen() {
         renderItem={({ item, section, index }) => (
             <View style={{ paddingHorizontal: 20 }}>
                 <TimelineItem 
-      ) : (
-        <ContestList 
-          contests={upcomingContests} 
-          emptyMessage="No upcoming contests found."
-        />
-      )}
-    </View>
+                    contest={item} 
+                    isLast={index === section.data.length - 1} 
+                />
+            </View>
+        )}
+        renderSectionHeader={({ section: { title } }) => (
+          <View style={[styles.sectionHeader, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
+            <Text style={[styles.sectionTitle, { color: colors.text.secondary }]}>{title}</Text>
+          </View>
+        )}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
+        }
+        ListEmptyComponent={
+          !isLoading ? (
+            <View style={styles.emptyContainer}>
+                <Text style={[styles.emptyText, { color: colors.text.muted }]}>No contests found matching criteria.</Text>
+            </View>
+          ) : (
+            <ActivityIndicator style={{ marginTop: 20 }} color={colors.primary} />
+          )
+        }
+      />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 50,
   },
   header: {
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+  },
+  headerSubtitle: {
+      fontSize: 14,
+      marginTop: -2,
+  },
+  filterSection: {
+      paddingHorizontal: 20,
+      paddingBottom: 10
+  },
   searchBar: {
-    backgroundColor: colors.surface,
     elevation: 0,
     borderWidth: 2, // Thick
-    borderColor: colors.border,
     height: 50,
     marginBottom: 16,
     borderRadius: 4, // Sharp
     
     // Hard Shadow
-    shadowColor: colors.primary,
     shadowOffset: { width: 4, height: 4 },
     shadowOpacity: 1,
     shadowRadius: 0,
@@ -158,33 +201,25 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   chip: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
     borderWidth: 2, // Thick
     height: 36,
     borderRadius: 4, // Sharp
-    marginRight: 4,
   },
   chipSelected: {
-      backgroundColor: colors.text.primary, // White background for selected
       borderWidth: 2,
-      borderColor: colors.primary, // Pink border for selected
   },
   listContent: {
     paddingBottom: 40,
   },
   sectionHeader: {
-    backgroundColor: colors.background, 
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
     marginBottom: 10
   },
   sectionTitle: {
     fontSize: 14,
     fontWeight: '700',
-    color: colors.text.secondary,
     textTransform: 'uppercase',
     letterSpacing: 1
   },
@@ -193,6 +228,5 @@ const styles = StyleSheet.create({
       marginTop: 60
   },
   emptyText: {
-      color: colors.text.muted
   }
 });

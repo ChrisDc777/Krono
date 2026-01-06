@@ -45,17 +45,22 @@ export const SleekCard: React.FC<SleekCardProps> = ({
   );
 };
 
+const styles = StyleSheet.create({
+  container: {
+    marginBottom: 16,
     marginRight: 4,
   },
-  cardContent: {
-    backgroundColor: colors.surface,
+  shadowLayer: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 16, // Squircle-like
+    top: 4,
+    left: 4,
     borderWidth: 2,
-    borderColor: colors.border,
+  },
+  cardContent: {
+    borderWidth: 2,
     padding: 16,
     borderRadius: 16, // Match shadow layer
-    // Offset the content "up and left" relative to the shadow layer
-    // to reveal the shadow on bottom-right
-    transform: [{ translateX: -4 }, { translateY: -4 }],
     minHeight: 50, 
   }
 });

@@ -1,17 +1,16 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
-import { ActivityIndicator, FAB, IconButton, Text } from 'react-native-paper';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { ProfileCard } from '../../src/components/ui/ProfileCard';
-import { TimelineItem } from '../../src/components/ui/TimelineItem';
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator } from 'react-native-paper';
+import { ContestList } from '../../src/components/contests/ContestList';
+import { ProfileCarousel } from '../../src/components/profile/ProfileCarousel';
+import { useTheme } from '../../src/hooks/useTheme';
 import { useContestStore } from '../../src/stores/useContestStore';
 import { useProfileStore } from '../../src/stores/useProfileStore';
-import { colors } from '../../src/theme/colors';
+import { typography } from '../../src/theme/typography';
 
 export default function DashboardScreen() {
-  const router = useRouter();
+  const { colors } = useTheme();
   const { profiles, loadProfiles, refreshProfiles, isLoading: isProfileLoading } = useProfileStore();
   const { upcomingContests, loadContests, syncContests, isLoading: isContestLoading } = useContestStore();
 
@@ -20,93 +19,27 @@ export default function DashboardScreen() {
     loadContests();
   }, []);
 
-  const handleGoToSettings = () => {
-    router.push('/settings');
-  };
-
   const handleSync = async () => {
     // specific order: sync profiles first, then contests
     refreshProfiles(); 
     syncContests();
   };
 
-  return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.date}>{new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase()}</Text>
-          <Text style={styles.headerTitle}>Dashboard</Text>
-        </View>
-        <IconButton
-          icon="cog-outline"
-          iconColor={colors.text.primary}
-          size={26}
-          onPress={handleGoToSettings}
-        />
-      </View>
+  const isLoading = isProfileLoading || isContestLoading;
 
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView 
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl 
-                refreshing={isContestLoading || isProfileLoading} 
+                refreshing={isLoading} 
                 onRefresh={handleSync} 
                 tintColor={colors.primary} 
           />
         }
       >
-        {/* Profile Statistics Carousel */}
-        <View style={styles.profilesSection}>
-          {profiles.length === 0 ? (
-            <View style={styles.emptyState}>
-              <MaterialCommunityIcons name="card-account-details-outline" size={48} color={colors.text.muted} />
-              <Text style={styles.emptyText}>Track your progress</Text>
-              <Text style={styles.emptySubText}>Add your coding profiles to get started</Text>
-              <FAB
-                icon="plus"
-                label="Connect Profile"
-                style={styles.connectButton}
-                color={colors.text.inverse}
-                onPress={handleGoToSettings}
-                small
-              />
-            </View>
-          ) : (
-            <ScrollView 
-                horizontal 
-                showsHorizontalScrollIndicator={false} 
-                contentContainerStyle={styles.profileList}
-                decelerationRate="fast"
-                snapToInterval={316} // 300 width + 16 margin
-            >
-              {profiles.map(profile => (
-                <ProfileCard key={profile.id} profile={profile} />
-              ))}
-              <View style={styles.addCardPlaceholder}>
-                   <IconButton icon="plus" onPress={handleGoToSettings} iconColor={colors.text.muted} size={30} />
-                   <Text style={styles.addText}>Add</Text>
-              </View>
-            </ScrollView>
-          )}
-        </View>
-
-        {/* Timeline Section */}
-        <View style={styles.timelineSection}>
-          <Text style={styles.sectionTitle}>Timeline</Text>
-          
-          {isContestLoading && upcomingContests.length === 0 ? (
-             <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 20 }} />
-          ) : upcomingContests.length === 0 ? (
-            <View style={styles.emptyTimeline}>
-                 <Text style={styles.emptyText}>No upcoming contests.</Text>
-            </View>
-          ) : (
-            <View style={styles.timelineContainer}>
-              {upcomingContests.slice(0, 10).map((contest, index) => (
-                <TimelineItem 
-                    key={contest.id} 
                     contest={contest} 
                     isLast={index === 9 || index === upcomingContests.length - 1} 
                 />

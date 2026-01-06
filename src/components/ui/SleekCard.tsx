@@ -1,37 +1,50 @@
 import React from 'react';
-import { StyleSheet, View, ViewStyle } from 'react-native';
-import { colors } from '../../theme/colors';
+import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
+import { useTheme } from '../../hooks/useTheme';
 
 interface SleekCardProps {
   children: React.ReactNode;
-  style?: ViewStyle;
-  variant?: 'primary' | 'secondary' | 'accent' | 'default';
+  style?: StyleProp<ViewStyle>;
+  variant?: 'default' | 'outlined' | 'flat';
   customShadowColor?: string;
 }
 
-export const SleekCard = ({ children, style, variant = 'primary', customShadowColor }: SleekCardProps) => {
-  // Determine shadow color based on variant
-  let shadowColor = colors.primary;
-  if (variant === 'secondary') shadowColor = colors.secondary;
-  if (variant === 'accent') shadowColor = colors.accent;
-  if (variant === 'default') shadowColor = '#1C1917'; // Match primary Black
-  
-  // Override if custom color provided
-  if (customShadowColor) shadowColor = customShadowColor;
+export const SleekCard: React.FC<SleekCardProps> = ({ 
+    children, 
+    style, 
+    variant = 'default',
+    customShadowColor 
+}) => {
+  const { colors } = useTheme();
 
   return (
-    <View style={[styles.shadowLayer, { backgroundColor: shadowColor }, style]}>
-      <View style={styles.cardContent}>
+    <View style={[styles.container, style]}>
+      {/* Hard Shadow Layer - Neo Brutalist Style */}
+      {variant !== 'flat' && (
+        <View style={[
+          styles.shadowLayer, 
+          { 
+            backgroundColor: customShadowColor || colors.primary,
+            borderColor: colors.border // Match border color
+          }
+        ]} />
+      )}
+      
+      {/* Content Layer */}
+      <View style={[
+        styles.cardContent,
+        {
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+        },
+        variant === 'outlined' && { backgroundColor: 'transparent' }
+      ]}>
         {children}
       </View>
     </View>
   );
 };
 
-const styles = StyleSheet.create({
-  shadowLayer: {
-    borderRadius: 16, // Squircle-like
-    marginBottom: 16,
     marginRight: 4,
   },
   cardContent: {

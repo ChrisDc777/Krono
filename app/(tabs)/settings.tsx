@@ -12,12 +12,13 @@ import {
     Text,
     TextInput
 } from 'react-native-paper';
+import { useTheme } from '../../src/hooks/useTheme';
 import { useProfileStore } from '../../src/stores/useProfileStore';
-import { colors } from '../../src/theme/colors';
 import { typography } from '../../src/theme/typography';
 import { PLATFORMS, PlatformId } from '../../src/types/platform';
 
 export default function SettingsScreen() {
+  const { colors, isDarkMode, toggleTheme } = useTheme();
   const { profiles, addProfile, removeProfile, isLoading } = useProfileStore();
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<PlatformId | null>(null);
@@ -57,33 +58,47 @@ export default function SettingsScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={styles.content}>
         {/* Header */}
-        <Text style={styles.headerTitle}>Settings</Text>
+        <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Settings</Text>
+
+        {/* Appearance Section */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Appearance</Text>
+          <Card style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+             <List.Item
+              title="Dark Mode"
+              description="Switch between light and dark themes"
+              titleStyle={{ color: colors.text.primary }}
+              descriptionStyle={{ color: colors.text.secondary }}
+              right={() => <Switch value={isDarkMode} onValueChange={toggleTheme} color={colors.primary} />}
+            />
+          </Card>
+        </View>
 
         {/* Connected Profiles Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Connected Profiles</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Connected Profiles</Text>
           {profiles.length === 0 ? (
-            <Card style={styles.card}>
+            <Card style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
               <Card.Content>
-                <Text style={styles.emptyText}>No profiles connected yet.</Text>
+                <Text style={[styles.emptyText, { color: colors.text.secondary }]}>No profiles connected yet.</Text>
               </Card.Content>
             </Card>
           ) : (
             profiles.map(profile => (
-              <Card key={profile.id} style={styles.profileCard}>
+              <Card key={profile.id} style={[styles.profileCard, { backgroundColor: colors.surface, borderColor: colors.border, shadowColor: colors.secondary }]}>
                 <Card.Content style={styles.profileRow}>
                   <View style={styles.profileInfo}>
                     <Text style={[styles.platformBadge, { color: PLATFORMS[profile.platformId].color }]}>
                       {PLATFORMS[profile.platformId].name}
                     </Text>
-                    <Text style={styles.username}>{profile.username}</Text>
+                    <Text style={[styles.username, { color: colors.text.primary }]}>{profile.username}</Text>
                   </View>
                   <View style={styles.profileStats}>
-                    <Text style={styles.rating}>{profile.rating}</Text>
-                    <Text style={styles.solvedCount}>{profile.problemsSolved} solved</Text>
+                    <Text style={[styles.rating, { color: colors.accent }]}>{profile.rating}</Text>
+                    <Text style={[styles.solvedCount, { color: colors.text.secondary }]}>{profile.problemsSolved} solved</Text>
                   </View>
                   <IconButton 
                     icon="delete" 
@@ -99,12 +114,12 @@ export default function SettingsScreen() {
 
         {/* Add Profile Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Add Platform</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Add Platform</Text>
           <View style={styles.platformGrid}>
             {availablePlatforms.map(platform => (
               <Card 
                 key={platform.id} 
-                style={styles.platformCard}
+                style={[styles.platformCard, { backgroundColor: colors.surface, borderColor: colors.border, shadowColor: colors.accent }]}
                 onPress={() => openAddModal(platform.id)}
               >
                 <Card.Content style={styles.platformCardContent}>
@@ -120,8 +135,8 @@ export default function SettingsScreen() {
 
         {/* Notification Settings */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Notifications</Text>
-          <Card style={styles.card}>
+          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Notifications</Text>
+          <Card style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <List.Item
               title="Contest Reminders"
               description="Get notified before contests start"
@@ -152,12 +167,12 @@ export default function SettingsScreen() {
 
         {/* App Info */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>About</Text>
-          <Card style={styles.card}>
+          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>About</Text>
+          <Card style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Card.Content>
-              <Text style={styles.appName}>Krono</Text>
-              <Text style={styles.appTagline}>Never miss a contest again.</Text>
-              <Text style={styles.version}>Version 1.0.0</Text>
+              <Text style={[styles.appName, { color: colors.primary }]}>Krono</Text>
+              <Text style={[styles.appTagline, { color: colors.text.secondary }]}>Never miss a contest again.</Text>
+              <Text style={[styles.version, { color: colors.text.disabled }]}>Version 1.0.0</Text>
             </Card.Content>
           </Card>
         </View>
@@ -168,16 +183,16 @@ export default function SettingsScreen() {
         <Modal 
           visible={modalVisible} 
           onDismiss={() => setModalVisible(false)}
-          contentContainerStyle={styles.modal}
+          contentContainerStyle={[styles.modal, { backgroundColor: colors.surface }]}
         >
-          <Text style={styles.modalTitle}>
+          <Text style={[styles.modalTitle, { color: colors.text.primary }]}>
             Add {selectedPlatform ? PLATFORMS[selectedPlatform].name : ''} Profile
           </Text>
           <TextInput
             label="Username / Handle"
             value={username}
             onChangeText={setUsername}
-            style={styles.input}
+            style={[styles.input, { backgroundColor: colors.background }]}
             mode="outlined"
             outlineColor={colors.surfaceHighlight}
             activeOutlineColor={colors.primary}
@@ -198,6 +213,8 @@ export default function SettingsScreen() {
               onPress={handleAddProfile}
               loading={isLoading}
               disabled={!username.trim()}
+              buttonColor={colors.primary}
+              textColor={colors.text.inverse}
             >
               Add
             </Button>
@@ -211,7 +228,6 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
     paddingTop: 50,
   },
   content: {
@@ -221,7 +237,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: typography.size.xxl,
     fontWeight: 'bold',
-    color: colors.text.primary,
     marginBottom: 30,
   },
   section: {
@@ -230,15 +245,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: typography.size.lg,
     fontWeight: 'bold',
-    color: colors.text.primary,
     marginBottom: 15,
   },
   card: {
-    backgroundColor: colors.surface,
     borderRadius: 4,
     borderWidth: 2,
-    borderColor: colors.border,
-    shadowColor: colors.primary,
     shadowOffset: { width: 4, height: 4 },
     shadowOpacity: 1,
     shadowRadius: 0,
@@ -247,12 +258,9 @@ const styles = StyleSheet.create({
     marginRight: 4
   },
   profileCard: {
-    backgroundColor: colors.surface,
-    marginBottom: 16, // Space for shadow
+    marginBottom: 16, 
     borderRadius: 4,
     borderWidth: 2,
-    borderColor: colors.border,
-    shadowColor: colors.secondary, // Cyan shadow for profiles
     shadowOffset: { width: 4, height: 4 },
     shadowOpacity: 1,
     shadowRadius: 0,
@@ -275,7 +283,6 @@ const styles = StyleSheet.create({
   username: {
     fontSize: typography.size.lg,
     fontWeight: 'bold',
-    color: colors.text.primary,
   },
   profileStats: {
     alignItems: 'flex-end',
@@ -283,14 +290,11 @@ const styles = StyleSheet.create({
   rating: {
     fontSize: typography.size.xl,
     fontWeight: 'bold',
-    color: colors.accent,
   },
   solvedCount: {
     fontSize: typography.size.xs,
-    color: colors.text.secondary,
   },
   emptyText: {
-    color: colors.text.secondary,
     textAlign: 'center',
   },
   platformGrid: {
@@ -299,12 +303,9 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   platformCard: {
-    backgroundColor: colors.surface,
     width: '48%',
     borderRadius: 4,
     borderWidth: 2,
-    borderColor: colors.border,
-    shadowColor: colors.accent, // Lime shadow for add buttons
     shadowOffset: { width: 3, height: 3 },
     shadowOpacity: 1,
     shadowRadius: 0,
@@ -323,20 +324,16 @@ const styles = StyleSheet.create({
   appName: {
     fontSize: typography.size.xl,
     fontWeight: 'bold',
-    color: colors.primary,
   },
   appTagline: {
     fontSize: typography.size.md,
-    color: colors.text.secondary,
     marginTop: 4,
   },
   version: {
     fontSize: typography.size.sm,
-    color: colors.text.disabled,
     marginTop: 10,
   },
   modal: {
-    backgroundColor: colors.surface,
     padding: 20,
     margin: 20,
     borderRadius: 12,
@@ -344,12 +341,10 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: typography.size.lg,
     fontWeight: 'bold',
-    color: colors.text.primary,
     marginBottom: 20,
   },
   input: {
     marginBottom: 20,
-    backgroundColor: colors.background,
   },
   modalActions: {
     flexDirection: 'row',

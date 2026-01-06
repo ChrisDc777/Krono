@@ -121,58 +121,22 @@ export default function ContestsScreen() {
         renderItem={({ item, section, index }) => (
             <View style={{ paddingHorizontal: 20 }}>
                 <TimelineItem 
-                    contest={item} 
-                    isLast={index === section.data.length - 1} 
-                />
-            </View>
-        )}
-        renderSectionHeader={({ section: { title } }) => (
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>{title}</Text>
-          </View>
-        )}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
-        }
-        ListEmptyComponent={
-          !isLoading ? (
-            <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>No contests found matching criteria.</Text>
-            </View>
-          ) : (
-            <ActivityIndicator style={{ marginTop: 20 }} color={colors.primary} />
-          )
-        }
-      />
-    </SafeAreaView>
+      ) : (
+        <ContestList 
+          contests={upcomingContests} 
+          emptyMessage="No upcoming contests found."
+        />
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    paddingTop: 50,
   },
   header: {
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: colors.text.primary,
-  },
-  headerSubtitle: {
-      fontSize: 14,
-      color: colors.text.secondary,
-      marginTop: -2,
-  },
-  filterSection: {
-      paddingHorizontal: 20,
-      paddingBottom: 10
-  },
   searchBar: {
     backgroundColor: colors.surface,
     elevation: 0,

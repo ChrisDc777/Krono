@@ -1,5 +1,21 @@
-export const colors = {
-  // Neutral Neo-Brutalist (Stone Paper)
+// Common platform colors remain the same
+const platformColors = {
+    codeforces: '#1C1917', 
+    leetcode: '#1C1917',   
+    codechef: '#1C1917',   
+    atcoder: '#1C1917',    
+    codingninjas: '#1C1917',
+    geeksforgeeks: '#1C1917',
+};
+
+const commonStatus = {
+    success: '#166534', // Green 800
+    error: '#DC2626',   // Red 600
+    warning: '#D97706', // Amber 600
+    info: '#0284C7',    // Sky 600
+};
+
+export const lightColors = {
   background: '#F5F5F4', // Stone 100
   surface: '#FFFFFF',    // White
   surfaceHighlight: '#E7E5E4', // Stone 200
@@ -17,44 +33,41 @@ export const colors = {
     inverse: '#FFFFFF', // White text on black
   },
   
+  status: commonStatus,
+  platforms: platformColors,
+  
+  isDark: false
+};
+
+export const darkColors = {
+  background: '#0C0A09', // Stone 950
+  surface: '#1C1917',    // Stone 900
+  surfaceHighlight: '#292524', // Stone 800
+  border: '#57534E',     // Stone 600 (Softer border for dark mode)
+  
+  primary: '#F5F5F4', // Stone 100 (White-ish)
+  secondary: '#A8A29E', // Stone 400
+  accent: '#78716C', // Stone 500
+  
+  text: {
+    primary: '#F5F5F4', // Stone 100
+    secondary: '#D6D3D1', // Stone 300
+    muted: '#78716C', // Stone 500
+    disabled: '#57534E', // Stone 600
+    inverse: '#1C1917', // Black text on white
+  },
+  
   status: {
-    success: '#166534', // Green 800
-    error: '#DC2626',   // Red 600
-    warning: '#D97706', // Amber 600
-    info: '#0284C7',    // Sky 600
+    ...commonStatus,
+    error: '#EF4444', // Red 500 (Brighter for dark mode)
+    success: '#22C55E', // Green 500
+    warning: '#F59E0B', // Amber 500
+    info: '#0EA5E9', // Sky 500
   },
+  platforms: platformColors,
 
-  platforms: {
-    codeforces: '#1C1917', 
-    leetcode: '#1C1917',   
-    codechef: '#1C1917',   
-    atcoder: '#1C1917',    
-    codingninjas: '#1C1917',
-    geeksforgeeks: '#1C1917',
-  },
+  isDark: true
 };
 
-export const darkTheme = {
-  dark: false, // Switch to Light Mode
-  colors: {
-    primary: colors.primary,
-    background: colors.background,
-    card: colors.surface,
-    text: colors.text.primary,
-    border: colors.border,
-    notification: colors.primary,
-    surface: colors.surface,
-    onSurface: colors.text.primary,
-    error: colors.status.error,
-    placeholder: colors.text.muted,
-    backdrop: 'rgba(0,0,0,0.5)',
-    elevation: {
-        level0: 'transparent',
-        level1: colors.surface,
-        level2: colors.surface,
-        level3: colors.surface,
-        level4: colors.surface,
-        level5: colors.surface,
-    }
-  },
-};
+// Default export for backwards compatibility during refactor (Points to Light temporarily)
+export const colors = lightColors;

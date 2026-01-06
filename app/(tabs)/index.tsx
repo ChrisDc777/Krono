@@ -38,14 +38,17 @@ export default function DashboardScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View>
-          <Text style={[styles.date, { color: colors.text.muted }]}>{new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase()}</Text>
-          <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Dashboard</Text>
+            <Text style={[styles.date, { color: colors.text.secondary }]}>
+                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).toUpperCase()}
+            </Text>
+            <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Dashboard</Text>
         </View>
         <IconButton
           icon="cog-outline"
+          size={24}
           iconColor={colors.text.primary}
-          size={26}
-          onPress={handleGoToSettings}
+          onPress={() => router.push('/settings')}
+          style={{ margin: 0 }}
         />
       </View>
 

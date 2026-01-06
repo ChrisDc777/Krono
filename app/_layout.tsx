@@ -65,7 +65,7 @@ export default function RootLayout() {
   }
 
   return (
-    <PaperProvider theme={theme}>
+    <PaperProvider theme={theme as any}>
       <StatusBar style={isDarkMode ? 'light' : 'dark'} />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />

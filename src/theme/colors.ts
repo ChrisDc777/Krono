@@ -46,26 +46,26 @@ export const lightColors = {
 };
 
 export const darkColors = {
-  background: '#0C0A09', // Stone 950
-  surface: '#292524',    // Stone 800 (Lighter for contrast)
-  surfaceHighlight: '#44403C', // Stone 700
-  border: '#78716C',     // Stone 500 (Lighter border)
+  background: '#09090B', // Zinc 950
+  surface: '#18181B',    // Zinc 900
+  surfaceHighlight: '#27272A', // Zinc 800
+  border: '#3F3F46',     // Zinc 700
   
-  primary: '#F5F5F4', // Stone 100 (White-ish)
-  secondary: '#A8A29E', // Stone 400
-  accent: '#78716C', // Stone 500
+  primary: '#FAFAFA', // Zinc 50
+  secondary: '#A1A1AA', // Zinc 400
+  accent: '#71717A', // Zinc 500
   
   text: {
-    primary: '#F5F5F4', // Stone 100
-    secondary: '#D6D3D1', // Stone 300
-    muted: '#78716C', // Stone 500
-    disabled: '#57534E', // Stone 600
-    inverse: '#1C1917', // Black text on white
+    primary: '#FAFAFA', // Zinc 50
+    secondary: '#A1A1AA', // Zinc 400
+    muted: '#71717A', // Zinc 500
+    disabled: '#52525B', // Zinc 600
+    inverse: '#09090B', // Zinc 950
   },
   
   status: {
     ...commonStatus,
-    error: '#EF4444', // Red 500 (Brighter for dark mode)
+    error: '#EF4444', // Red 500
     success: '#22C55E', // Green 500
     warning: '#F59E0B', // Amber 500
     info: '#0EA5E9', // Sky 500

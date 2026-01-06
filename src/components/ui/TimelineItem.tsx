@@ -144,5 +144,19 @@ const styles = StyleSheet.create({
       fontSize: 10,
       fontWeight: '900',
       letterSpacing: 0.5
+  },
+  contestTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      lineHeight: 20
+  },
+  durationBadge: {
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      borderRadius: 4
+  },
+  durationText: {
+      fontSize: 10,
+      fontWeight: '700'
   }
 });

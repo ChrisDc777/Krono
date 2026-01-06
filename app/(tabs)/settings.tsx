@@ -14,7 +14,6 @@ import {
 } from 'react-native-paper';
 import { useTheme } from '../../src/hooks/useTheme';
 import { useProfileStore } from '../../src/stores/useProfileStore';
-import { typography } from '../../src/theme/typography';
 import { PLATFORMS, PlatformId } from '../../src/types/platform';
 
 export default function SettingsScreen() {
@@ -57,125 +56,129 @@ export default function SettingsScreen() {
     platform => !profiles.some(p => p.platformId === platform.id)
   );
 
+
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView contentContainerStyle={styles.content}>
-        {/* Header */}
-        <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Settings</Text>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Hero Header for Settings */}
+        <View style={styles.header}>
+             <Text style={[styles.headerLabel, { color: colors.text.secondary }]}>PREFERENCES</Text>
+             <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Settings</Text>
+        </View>
 
         {/* Appearance Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Appearance</Text>
-          <Card style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>APPEARANCE</Text>
+          <View style={[styles.cardGroup, { backgroundColor: colors.surface, borderColor: colors.border }]}>
              <List.Item
               title="Dark Mode"
               description="Switch between light and dark themes"
-              titleStyle={{ color: colors.text.primary }}
+              titleStyle={{ color: colors.text.primary, fontWeight: '700' }}
               descriptionStyle={{ color: colors.text.secondary }}
               right={() => <Switch value={isDarkMode} onValueChange={toggleTheme} color={colors.primary} />}
             />
-          </Card>
+          </View>
+        </View>
+
+        {/* Notification Settings */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>NOTIFICATIONS</Text>
+          <View style={[styles.cardGroup, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            <List.Item
+              title="Contest Reminders"
+              description="Get notified before contests start"
+              titleStyle={{ color: colors.text.primary, fontWeight: '700' }}
+              descriptionStyle={{ color: colors.text.secondary }}
+              right={() => <Switch value={true} color={colors.primary} />}
+            />
+            <Divider style={{ backgroundColor: colors.border, height: 1 }} />
+            <List.Item
+              title="15 minutes before"
+              titleStyle={{ color: colors.text.primary, fontWeight: '600', fontSize: 13 }}
+              right={() => <Switch value={true} color={colors.primary} />}
+            />
+            <Divider style={{ backgroundColor: colors.border, height: 1 }} />
+            <List.Item
+              title="1 hour before"
+              titleStyle={{ color: colors.text.primary, fontWeight: '600', fontSize: 13 }}
+              right={() => <Switch value={false} color={colors.primary} />}
+            />
+          </View>
         </View>
 
         {/* Connected Profiles Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Connected Profiles</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>CONNECTED PROFILES</Text>
           {profiles.length === 0 ? (
-            <Card style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-              <Card.Content>
+            <View style={[styles.emptyCard, { borderColor: colors.border, backgroundColor: colors.surface }]}>
                 <Text style={[styles.emptyText, { color: colors.text.secondary }]}>No profiles connected yet.</Text>
-              </Card.Content>
-            </Card>
+            </View>
           ) : (
             profiles.map(profile => (
-              <Card key={profile.id} style={[styles.profileCard, { backgroundColor: colors.surface, borderColor: colors.border, shadowColor: colors.secondary }]}>
-                <Card.Content style={styles.profileRow}>
-                  <View style={styles.profileInfo}>
-                    <Text style={[styles.platformBadge, { color: PLATFORMS[profile.platformId].color }]}>
-                      {PLATFORMS[profile.platformId].name}
-                    </Text>
-                    <Text style={[styles.username, { color: colors.text.primary }]}>{profile.username}</Text>
+              <View key={profile.id} style={[styles.profileCard, { backgroundColor: colors.surface, borderColor: colors.border, shadowColor: colors.primary }]}>
+                  <View style={styles.profileRow}>
+                    <View style={styles.profileInfo}>
+                        <View style={[styles.platformBadge, { backgroundColor: PLATFORMS[profile.platformId].color }]}>
+                            <Text style={[styles.platformBadgeText, { color: '#FFF' }]}>
+                                {PLATFORMS[profile.platformId].name.toUpperCase()}
+                            </Text>
+                        </View>
+                        <Text style={[styles.username, { color: colors.text.primary }]}>@{profile.username}</Text>
+                    </View>
+                    <View style={styles.profileStats}>
+                        <Text style={[styles.rating, { color: PLATFORMS[profile.platformId].color }]}>{profile.rating || '-'}</Text>
+                        <Text style={[styles.solvedCount, { color: colors.text.secondary }]}>RATING</Text>
+                    </View>
                   </View>
-                  <View style={styles.profileStats}>
-                    <Text style={[styles.rating, { color: colors.accent }]}>{profile.rating}</Text>
-                    <Text style={[styles.solvedCount, { color: colors.text.secondary }]}>{profile.problemsSolved} solved</Text>
+                  <Divider style={{ marginVertical: 10, backgroundColor: colors.surfaceHighlight }} />
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                       <Text style={{ color: colors.text.secondary, fontSize: 12, fontWeight: '700' }}>
+                           {profile.problemsSolved} Problems Solved
+                       </Text>
+                       <IconButton 
+                        icon="delete-outline" 
+                        size={20} 
+                        iconColor={colors.status.error}
+                        onPress={() => handleDeleteProfile(profile.id, profile.username)}
+                        style={{ margin: 0 }}
+                      />
                   </View>
-                  <IconButton 
-                    icon="delete" 
-                    size={20} 
-                    iconColor={colors.status.error}
-                    onPress={() => handleDeleteProfile(profile.id, profile.username)}
-                  />
-                </Card.Content>
-              </Card>
+              </View>
             ))
           )}
         </View>
 
         {/* Add Profile Section */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Add Platform</Text>
+          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>ADD PROFILE</Text>
           <View style={styles.platformGrid}>
             {availablePlatforms.map(platform => (
               <Card 
                 key={platform.id} 
-                style={[styles.platformCard, { backgroundColor: colors.surface, borderColor: colors.border, shadowColor: colors.accent }]}
+                style={[
+                    styles.platformCard, 
+                    { backgroundColor: colors.surface, borderColor: colors.border, shadowColor: colors.border }
+                ]}
                 onPress={() => openAddModal(platform.id)}
               >
                 <Card.Content style={styles.platformCardContent}>
                   <Text style={[styles.platformName, { color: platform.color }]}>
                     {platform.name}
                   </Text>
-                  <IconButton icon="plus" size={20} iconColor={colors.primary} />
+                  <IconButton icon="plus" size={20} iconColor={colors.text.primary} />
                 </Card.Content>
               </Card>
             ))}
           </View>
         </View>
 
-        {/* Notification Settings */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Notifications</Text>
-          <Card style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <List.Item
-              title="Contest Reminders"
-              description="Get notified before contests start"
-              titleStyle={{ color: colors.text.primary }}
-              descriptionStyle={{ color: colors.text.secondary }}
-              right={() => <Switch value={true} color={colors.primary} />}
-            />
-            <Divider style={{ backgroundColor: colors.surfaceHighlight }} />
-            <List.Item
-              title="15 minutes before"
-              titleStyle={{ color: colors.text.primary }}
-              right={() => <Switch value={true} color={colors.primary} />}
-            />
-            <Divider style={{ backgroundColor: colors.surfaceHighlight }} />
-            <List.Item
-              title="1 hour before"
-              titleStyle={{ color: colors.text.primary }}
-              right={() => <Switch value={false} color={colors.primary} />}
-            />
-            <Divider style={{ backgroundColor: colors.surfaceHighlight }} />
-            <List.Item
-              title="1 day before"
-              titleStyle={{ color: colors.text.primary }}
-              right={() => <Switch value={false} color={colors.primary} />}
-            />
-          </Card>
+        {/* App Info Footer */}
+        <View style={styles.footer}>
+           <Text style={[styles.appName, { color: colors.primary }]}>KRONO</Text>
+           <Text style={[styles.version, { color: colors.text.disabled }]}>v1.0.0 • Built with Expo</Text>
         </View>
-
-        {/* App Info */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>About</Text>
-          <Card style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Card.Content>
-              <Text style={[styles.appName, { color: colors.primary }]}>Krono</Text>
-              <Text style={[styles.appTagline, { color: colors.text.secondary }]}>Never miss a contest again.</Text>
-              <Text style={[styles.version, { color: colors.text.disabled }]}>Version 1.0.0</Text>
-            </Card.Content>
-          </Card>
-        </View>
+        
       </ScrollView>
 
       {/* Add Profile Modal */}
@@ -183,18 +186,24 @@ export default function SettingsScreen() {
         <Modal 
           visible={modalVisible} 
           onDismiss={() => setModalVisible(false)}
-          contentContainerStyle={[styles.modal, { backgroundColor: colors.surface }]}
+          contentContainerStyle={[
+              styles.modal, 
+              { backgroundColor: colors.surface, borderColor: colors.border, shadowColor: colors.primary }
+          ]}
         >
           <Text style={[styles.modalTitle, { color: colors.text.primary }]}>
-            Add {selectedPlatform ? PLATFORMS[selectedPlatform].name : ''} Profile
+            Link {selectedPlatform ? PLATFORMS[selectedPlatform].name : ''}
+          </Text>
+          <Text style={{ color: colors.text.secondary, marginBottom: 20 }}>
+              Enter your username to sync stats.
           </Text>
           <TextInput
-            label="Username / Handle"
+            label="Username"
             value={username}
             onChangeText={setUsername}
             style={[styles.input, { backgroundColor: colors.background }]}
             mode="outlined"
-            outlineColor={colors.surfaceHighlight}
+            outlineColor={colors.border}
             activeOutlineColor={colors.primary}
             textColor={colors.text.primary}
             autoCapitalize="none"
@@ -205,8 +214,9 @@ export default function SettingsScreen() {
               mode="text" 
               onPress={() => setModalVisible(false)}
               textColor={colors.text.secondary}
+              labelStyle={{ fontWeight: '700' }}
             >
-              Cancel
+              CANCEL
             </Button>
             <Button 
               mode="contained" 
@@ -215,8 +225,10 @@ export default function SettingsScreen() {
               disabled={!username.trim()}
               buttonColor={colors.primary}
               textColor={colors.text.inverse}
+              style={{ borderRadius: 4 }}
+              labelStyle={{ fontWeight: '700' }}
             >
-              Add
+              CONNECT
             </Button>
           </View>
         </Modal>
@@ -228,71 +240,105 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 50,
   },
   content: {
-    padding: 20,
+    padding: 24,
+    paddingTop: 60, // Safe area equivalent
     paddingBottom: 40,
   },
+  header: {
+      marginBottom: 30
+  },
+  headerLabel: {
+      fontSize: 12,
+      fontWeight: '900',
+      letterSpacing: 2,
+      marginBottom: 4
+  },
   headerTitle: {
-    fontSize: typography.size.xxl,
-    fontWeight: 'bold',
-    marginBottom: 30,
+      fontSize: 42, // Massive
+      fontWeight: '900',
+      lineHeight: 42,
+      letterSpacing: -1
   },
   section: {
-    marginBottom: 30,
+    marginBottom: 32,
   },
   sectionTitle: {
-    fontSize: typography.size.lg,
-    fontWeight: 'bold',
-    marginBottom: 15,
+    fontSize: 12,
+    fontWeight: '900',
+    marginBottom: 12,
+    letterSpacing: 1.5,
+    opacity: 0.7
   },
-  card: {
-    borderRadius: 4,
-    borderWidth: 2,
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
-    elevation: 0,
-    marginBottom: 4,
-    marginRight: 4
+  cardGroup: {
+      borderRadius: 8,
+      borderWidth: 2,
+      overflow: 'hidden',
+      
+      // Hard Shadow
+      shadowOffset: { width: 4, height: 4 },
+      shadowOpacity: 1,
+      shadowRadius: 0,
+      elevation: 0,
+  },
+  emptyCard: {
+      padding: 20,
+      borderRadius: 8,
+      borderWidth: 2,
+      borderStyle: 'dashed',
+      alignItems: 'center'
   },
   profileCard: {
     marginBottom: 16, 
-    borderRadius: 4,
+    borderRadius: 8,
     borderWidth: 2,
+    padding: 16,
+    
+    // Hard Shadow
     shadowOffset: { width: 4, height: 4 },
     shadowOpacity: 1,
     shadowRadius: 0,
     elevation: 0,
-    marginRight: 4
   },
   profileRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   profileInfo: {
     flex: 1,
   },
   platformBadge: {
-    fontSize: typography.size.xs,
-    fontWeight: 'bold',
-    marginBottom: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    alignSelf: 'flex-start',
+    marginBottom: 8
+  },
+  platformBadgeText: {
+      fontSize: 10,
+      fontWeight: '900',
+      letterSpacing: 0.5
   },
   username: {
-    fontSize: typography.size.lg,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '900',
+    letterSpacing: -0.5
   },
   profileStats: {
     alignItems: 'flex-end',
   },
   rating: {
-    fontSize: typography.size.xl,
-    fontWeight: 'bold',
+    fontSize: 24,
+    fontWeight: '900',
+    letterSpacing: -1
   },
   solvedCount: {
-    fontSize: typography.size.xs,
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1,
+    marginTop: 2
   },
   emptyText: {
     textAlign: 'center',
@@ -300,55 +346,66 @@ const styles = StyleSheet.create({
   platformGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 10,
+    gap: 12,
   },
   platformCard: {
     width: '48%',
-    borderRadius: 4,
+    borderRadius: 8,
     borderWidth: 2,
     shadowOffset: { width: 3, height: 3 },
     shadowOpacity: 1,
     shadowRadius: 0,
     elevation: 0,
-    marginBottom: 10,
-    marginRight: 4
+    marginBottom: 4,
   },
   platformCardContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingVertical: 8
   },
   platformName: {
-    fontWeight: 'bold',
+    fontWeight: '900',
+    fontSize: 14
+  },
+  footer: {
+      alignItems: 'center',
+      marginTop: 20,
+      marginBottom: 40,
+      opacity: 0.5
   },
   appName: {
-    fontSize: typography.size.xl,
-    fontWeight: 'bold',
-  },
-  appTagline: {
-    fontSize: typography.size.md,
-    marginTop: 4,
+      fontSize: 16,
+      fontWeight: '900',
+      letterSpacing: 2
   },
   version: {
-    fontSize: typography.size.sm,
-    marginTop: 10,
+      fontSize: 12,
+      marginTop: 4
   },
   modal: {
-    padding: 20,
+    padding: 24,
     margin: 20,
     borderRadius: 12,
+    borderWidth: 2,
+    shadowOffset: { width: 4, height: 4 },
+    shadowOpacity: 1,
+    shadowRadius: 0,
   },
   modalTitle: {
-    fontSize: typography.size.lg,
-    fontWeight: 'bold',
-    marginBottom: 20,
+    fontSize: 24,
+    fontWeight: '900',
+    marginBottom: 8,
+    letterSpacing: -0.5
   },
   input: {
     marginBottom: 20,
+    height: 50,
+    fontSize: 16
   },
   modalActions: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    gap: 10,
+    gap: 12,
   },
 });

@@ -1,7 +1,7 @@
 import { isSameDay, isTomorrow } from 'date-fns';
 import React, { useEffect, useMemo, useState } from 'react';
-import { RefreshControl, SectionList, StyleSheet, View } from 'react-native';
-import { ActivityIndicator, Chip, Searchbar, Text } from 'react-native-paper';
+import { RefreshControl, ScrollView, SectionList, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Chip, Text } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { TimelineItem } from '../../src/components/ui/TimelineItem';
 import { useTheme } from '../../src/hooks/useTheme';
@@ -11,18 +11,10 @@ import { PLATFORMS, PlatformId } from '../../src/types/platform';
 
 export default function ContestsScreen() {
   const { colors, isDarkMode } = useTheme();
-  // ... (rest of component state)
-
-  // ... (inside return)
-              textStyle={{ 
-                  color: selectedPlatform === platform.id 
-                    ? (platform.id === 'atcoder' && isDarkMode ? '#000000' : '#FFFFFF') 
-                    : colors.text.primary,
-                  fontWeight: selectedPlatform === platform.id ? 'bold' : 'normal'
-              }}
+  const { upcomingContests, loadContests, syncContests, isLoading } = useContestStore();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<PlatformId | 'all'>('all');
-  const [searchQuery, setSearchQuery] = useState('');
+
 
   useEffect(() => {
     loadContests();
@@ -38,10 +30,9 @@ export default function ContestsScreen() {
   const sections = useMemo(() => {
     const filtered = upcomingContests.filter(contest => {
       const matchesPlatform = selectedPlatform === 'all' || contest.platformId === selectedPlatform;
-      const matchesSearch = contest.name.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesPlatform && matchesSearch;
+      return matchesPlatform;
     });
-
+    // ... rest of logic
     const today: Contest[] = [];
     const tomorrow: Contest[] = [];
     const thisWeek: Contest[] = [];
@@ -51,6 +42,8 @@ export default function ContestsScreen() {
 
     filtered.forEach(contest => {
       const startDate = new Date(contest.startTime);
+      if (isNaN(startDate.getTime())) return;
+      
       if (isSameDay(startDate, now)) {
         today.push(contest);
       } else if (isTomorrow(startDate)) {
@@ -74,32 +67,33 @@ export default function ContestsScreen() {
     if (upcoming.length > 0) result.push({ title: 'Later', data: upcoming });
 
     return result;
-  }, [upcomingContests, selectedPlatform, searchQuery]);
+  }, [upcomingContests, selectedPlatform]);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-      <View style={styles.header}>
-         <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Contests</Text>
-         <Text style={[styles.headerSubtitle, { color: colors.text.secondary }]}>Upcoming schedule</Text>
+      {/* Hero Header */}
+      <View style={styles.heroHeader}>
+         <View>
+             <Text style={[styles.heroLabel, { color: colors.text.secondary }]}>SCHEDULE</Text>
+             <Text style={[styles.heroTitle, { color: colors.text.primary }]}>Contests</Text>
+         </View>
       </View>
 
-      <View style={styles.filterSection}>
-        <Searchbar
-          placeholder="Search..."
-          onChangeText={setSearchQuery}
-          value={searchQuery}
-          style={[styles.searchBar, { backgroundColor: colors.surface, borderColor: colors.border, shadowColor: colors.primary }]}
-          placeholderTextColor={colors.text.secondary}
-          iconColor={colors.text.secondary}
-          inputStyle={{ color: colors.text.primary, minHeight: 40 }}
-          theme={{ colors: { onSurfaceVariant: colors.text.secondary } }} // Fix cancel icon color
-        />
-        <View style={styles.chipsContainer}>
+      {/* Control Bar (Filter Only) */}
+      <View style={styles.controlBar}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsContainer}>
           <Chip
             selected={selectedPlatform === 'all'}
             onPress={() => setSelectedPlatform('all')}
-            style={[styles.chip, { backgroundColor: colors.surface, borderColor: colors.border }, selectedPlatform === 'all' && [styles.chipSelected, { backgroundColor: colors.text.primary, borderColor: colors.primary }]]}
-            textStyle={{ color: selectedPlatform === 'all' ? colors.text.inverse : colors.text.primary }}
+            style={[
+                styles.chip, 
+                { backgroundColor: colors.surface, borderColor: colors.border }, 
+                selectedPlatform === 'all' && [styles.chipSelected, { backgroundColor: colors.text.primary, borderColor: colors.primary }]
+            ]}
+            textStyle={{ 
+                color: selectedPlatform === 'all' ? colors.text.inverse : colors.text.primary,
+                fontWeight: '700'
+            }}
             showSelectedOverlay
           >
             All
@@ -118,17 +112,18 @@ export default function ContestsScreen() {
                   color: selectedPlatform === platform.id 
                     ? (platform.id === 'atcoder' && isDarkMode ? '#000000' : '#FFFFFF') 
                     : colors.text.primary,
-                  fontWeight: selectedPlatform === platform.id ? 'bold' : 'normal'
+                  fontWeight: '700'
               }}
               showSelectedOverlay
             >
               {platform.name}
             </Chip>
           ))}
-        </View>
+        </ScrollView>
       </View>
 
       <SectionList
+  // ... rest of list
         sections={sections}
         keyExtractor={(item) => item.id}
         renderItem={({ item, section, index }) => (
@@ -140,8 +135,14 @@ export default function ContestsScreen() {
             </View>
         )}
         renderSectionHeader={({ section: { title } }) => (
-          <View style={[styles.sectionHeader, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
-            <Text style={[styles.sectionTitle, { color: colors.text.secondary }]}>{title}</Text>
+          <View style={[styles.sectionHeader, { 
+              backgroundColor: colors.background, 
+              borderColor: colors.border 
+          }]}>
+            <View style={[styles.sectionTitleBadge, { backgroundColor: colors.text.primary }]}>
+                <Text style={[styles.sectionTitle, { color: colors.text.inverse }]}>{title}</Text>
+            </View>
+            <View style={[styles.sectionLine, { backgroundColor: colors.border }]} />
           </View>
         )}
         contentContainerStyle={styles.listContent}
@@ -167,66 +168,75 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    paddingHorizontal: 24,
-    paddingVertical: 10,
+  heroHeader: {
+      paddingHorizontal: 24,
+      paddingVertical: 20,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center'
   },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: '700',
+  heroLabel: {
+      fontSize: 12,
+      fontWeight: '900',
+      letterSpacing: 2,
+      marginBottom: 4
   },
-  headerSubtitle: {
-      fontSize: 14,
-      marginTop: -2,
+  heroTitle: {
+      fontSize: 42,
+      fontWeight: '900',
+      lineHeight: 42,
+      letterSpacing: -1
   },
-  filterSection: {
-      paddingHorizontal: 20,
-      paddingBottom: 10
-  },
-  searchBar: {
-    elevation: 0,
-    borderWidth: 2, // Thick
-    height: 50,
-    marginBottom: 16,
-    borderRadius: 4, // Sharp
-    
-    // Hard Shadow
-    shadowOffset: { width: 4, height: 4 },
-    shadowOpacity: 1,
-    shadowRadius: 0,
+  controlBar: {
+      paddingBottom: 20,
+      zIndex: 10
   },
   chipsContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: 8,
+    paddingHorizontal: 20
   },
   chip: {
     borderWidth: 2, // Thick
     height: 36,
-    borderRadius: 4, // Sharp
+    borderRadius: 8,
   },
   chipSelected: {
       borderWidth: 2,
   },
   listContent: {
     paddingBottom: 40,
+    paddingTop: 10
   },
   sectionHeader: {
     paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    marginBottom: 10
+    paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12
+  },
+  sectionTitleBadge: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 4,
+      marginRight: 12
   },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '900',
     textTransform: 'uppercase',
     letterSpacing: 1
+  },
+  sectionLine: {
+      flex: 1,
+      height: 2,
+      borderRadius: 1
   },
   emptyContainer: {
       alignItems: 'center',
       marginTop: 60
   },
   emptyText: {
+      fontWeight: '500'
   }
 });

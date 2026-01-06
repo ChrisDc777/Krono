@@ -22,21 +22,21 @@ const commonStatus = {
 };
 
 export const lightColors = {
-  background: '#F5F5F4', // Stone 100
+  background: '#FAFAFA', // Zinc 50
   surface: '#FFFFFF',    // White
-  surfaceHighlight: '#E7E5E4', // Stone 200
-  border: '#1C1917',     // Stone 900 (Black)
+  surfaceHighlight: '#F4F4F5', // Zinc 100
+  border: '#18181B',     // Zinc 900 (High contrast black)
   
-  primary: '#1C1917', // Black
-  secondary: '#57534E', // Stone 600
-  accent: '#A8A29E', // Stone 400
+  primary: '#18181B', // Zinc 900
+  secondary: '#52525B', // Zinc 600
+  accent: '#A1A1AA', // Zinc 400
   
   text: {
-    primary: '#1C1917', // Stone 900
-    secondary: '#57534E', // Stone 600
-    muted: '#A8A29E', // Stone 400
-    disabled: '#D6D3D1', // Stone 300
-    inverse: '#FFFFFF', // White text on black
+    primary: '#09090B', // Zinc 950
+    secondary: '#52525B', // Zinc 600
+    muted: '#A1A1AA', // Zinc 400
+    disabled: '#E4E4E7', // Zinc 200
+    inverse: '#FFFFFF', // White text
   },
   
   status: commonStatus,

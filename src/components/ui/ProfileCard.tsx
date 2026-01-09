@@ -9,24 +9,29 @@ interface ProfileCardProps {
   profile: UnifiedProfile;
 }
 
-export const ProfileCard: React.FC<ProfileCardProps> = ({ profile }) => {
-  const { colors } = useTheme();
+  // Platform specific color logic
+  const platformConfig = PLATFORMS[profile.platformId];
+  const platformColor = platformConfig?.color || colors.primary;
+  const platformIcon = platformConfig?.icon || 'code-tags';
+  const isDarkPlatform = profile.platformId === 'atcoder' && isDarkMode; // Handle AtCoder white on dark
 
-  // Platform specific color accents could be nice, but sticking to theme for consistency first
-  // or using the requested "brand color" logic if accessible.
-  // user previously asked for "platform specific colors" in the older request, let's keep it subtle or use theme.
+  // Dynamic Text Color for contrast on colored backgrounds
+  // Simple heuristic: if platform is AtCoder (white/black), handle explicitly
+  const textColor = profile.platformId === 'atcoder' && !isDarkMode ? '#000000' : platformColor;
   
-  const platformIcon = PLATFORMS[profile.platformId]?.icon || 'code-tags';
-
   return (
-    <Card style={[styles.card, { borderColor: colors.outlineVariant }]} mode="contained">
+    <Card style={[styles.card, { borderColor: platformColor + '40', backgroundColor: platformColor + '05' }]} mode="outlined">
       <View style={styles.cardInner}>
         
         {/* Header: Platform & Handle */}
         <View style={styles.header}>
-            <View style={[styles.platformPill, { backgroundColor: colors.surfaceVariant }]}>
-                 <MaterialCommunityIcons name={platformIcon as any} size={16} color={colors.onSurfaceVariant} />
-                 <Text variant="labelSmall" style={{ marginLeft: 6, color: colors.onSurfaceVariant, fontWeight: '700' }}>
+            <View style={[styles.platformPill, { backgroundColor: platformColor + '20' }]}>
+                 <MaterialCommunityIcons 
+                    name={platformIcon as any} 
+                    size={16} 
+                    color={profile.platformId === 'atcoder' && isDarkMode ? '#000000' : platformColor} 
+                 />
+                 <Text variant="labelSmall" style={{ marginLeft: 6, color: profile.platformId === 'atcoder' && isDarkMode ? '#000000' : platformColor, fontWeight: '700' }}>
                     {profile.platformId.toUpperCase()}
                  </Text>
             </View>
@@ -39,7 +44,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile }) => {
         <View style={styles.heroContainer}>
             {profile.rating !== undefined ? (
                 <>
-                    <Text variant="displaySmall" style={{ fontWeight: '900', color: colors.primary, lineHeight: 42 }}>
+                    <Text variant="displaySmall" style={{ fontWeight: '900', color: textColor, lineHeight: 42 }}>
                         {profile.rating}
                     </Text>
                     <Text variant="labelSmall" style={{ color: colors.outline, marginTop: 4, marginBottom: 12, letterSpacing: 2, textTransform: 'uppercase' }}>
@@ -52,15 +57,17 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile }) => {
                  </Text>
             )}
 
-            {/* Rank Title - Full Width, Centered, No Truncation */}
+            {/* Rank Title - Full Width, Centered, Tinted Background */}
             {profile.rank && (
-                <View style={[styles.rankContainer, { backgroundColor: colors.secondaryContainer }]}>
+                <View style={[styles.rankContainer, { backgroundColor: platformColor }]}>
                     <Text 
                         variant="bodyLarge" 
                         style={{ 
-                            color: colors.onSecondaryContainer, 
-                            fontWeight: '600', 
+                            color: profile.platformId === 'atcoder' && !isDarkMode ? '#FFFFFF' : '#FFFFFF', // Force white text on colored bg
+                            fontWeight: '700', 
                             textAlign: 'center',
+                            textShadowColor: 'rgba(0,0,0,0.2)',
+                            textShadowRadius: 2
                         }}
                     >
                         {profile.rank}
@@ -69,15 +76,15 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile }) => {
             )}
         </View>
 
-        <Divider style={{ backgroundColor: colors.outlineVariant, marginVertical: 12 }} />
+        <Divider style={{ backgroundColor: colors.outlineVariant, marginVertical: 12, opacity: 0.5 }} />
 
         {/* Footer: Stats (Problems Solved) */}
         <View style={styles.footer}>
              <View style={styles.statItem}>
-                 <Icon source="check-circle-outline" size={18} color={colors.secondary} />
-                 <Text variant="bodyMedium" style={{ marginLeft: 6, color: colors.onSurfaceVariant }}>
+                  <Icon source="check-circle-outline" size={18} color={colors.secondary} />
+                  <Text variant="bodyMedium" style={{ marginLeft: 6, color: colors.onSurfaceVariant }}>
                     <Text style={{ fontWeight: 'bold', color: colors.onSurface }}>{profile.problemsSolved || 0}</Text> Solved
-                 </Text>
+                  </Text>
              </View>
         </View>
       </View>
@@ -91,12 +98,11 @@ const styles = StyleSheet.create({
     minHeight: 260,
     borderRadius: 24,
     marginRight: 0,
-    backgroundColor: 'transparent',
-    borderWidth: 1, // Subtle border instead of shadow
+    borderWidth: 1.5, // Slightly thicker border
   },
   cardInner: {
       flex: 1,
-      padding: 20, // Slightly reduced padding to allow content to breathe relative to edges if needed
+      padding: 20,
       justifyContent: 'space-between'
   },
   header: {
@@ -108,8 +114,8 @@ const styles = StyleSheet.create({
   platformPill: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingHorizontal: 8,
-      paddingVertical: 4,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
       borderRadius: 100,
   },
   heroContainer: {
@@ -120,10 +126,10 @@ const styles = StyleSheet.create({
   },
   rankContainer: {
       width: '100%',
-      paddingVertical: 6, // Reduced from 8
+      paddingVertical: 8,
       paddingHorizontal: 12,
       borderRadius: 12,
-      marginTop: 4,
+      marginTop: 8,
       alignItems: 'center',
       justifyContent: 'center'
   },

@@ -1,6 +1,6 @@
 import { format, isSameDay, isTomorrow } from 'date-fns';
 import React, { useEffect, useMemo, useState } from 'react';
-import { RefreshControl, ScrollView, SectionList, StyleSheet, View } from 'react-native';
+import { Linking, RefreshControl, ScrollView, SectionList, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Appbar, Card, Chip, List, Text, useTheme } from 'react-native-paper';
 import { useContestStore } from '../../src/stores/useContestStore';
 import { Contest } from '../../src/types/contest';
@@ -76,7 +76,11 @@ export default function ContestsScreen() {
      const platformColor = PLATFORMS[item.platformId]?.color || colors.primary;
 
      return (
-        <Card style={[styles.card, { borderColor: colors.outlineVariant }]} mode="outlined">
+        <Card 
+            style={[styles.card, { borderColor: colors.outlineVariant }]} 
+            mode="outlined"
+            onPress={() => item.url && Linking.openURL(item.url)}
+        >
             <Card.Content style={styles.cardContent}>
               <View style={[styles.iconContainer, { backgroundColor: platformColor + '15' }]}>
                  <List.Icon icon="trophy-outline" color={platformColor} />

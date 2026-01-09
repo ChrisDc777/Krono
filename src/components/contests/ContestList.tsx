@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Linking, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Card, List, Text, useTheme } from 'react-native-paper';
 import { Contest } from '../../types/contest';
 
@@ -38,7 +38,13 @@ export const ContestList: React.FC<ContestListProps> = ({
       {displayedContests.map((contest) => {
         const startTime = new Date(contest.startTime);
         return (
-          <Card key={contest.id} style={styles.card} mode="elevated" elevation={2}>
+          <Card 
+            key={contest.id} 
+            style={styles.card} 
+            mode="elevated" 
+            elevation={2}
+            onPress={() => contest.url && Linking.openURL(contest.url)}
+          >
             <Card.Content style={styles.cardContent}>
               <View style={styles.iconContainer}>
                  <List.Icon icon="trophy-outline" color={colors.primary} />

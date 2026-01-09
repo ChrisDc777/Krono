@@ -205,12 +205,12 @@ const styles = StyleSheet.create({
   platformCardContent: {
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: 20
+      paddingVertical: 12
   },
   iconBox: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
       alignItems: 'center',
       justifyContent: 'center',
   },

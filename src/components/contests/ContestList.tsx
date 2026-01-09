@@ -3,6 +3,7 @@ import React from 'react';
 import { Linking, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Card, List, Text, useTheme } from 'react-native-paper';
 import { Contest } from '../../types/contest';
+import { PLATFORMS } from '../../types/platform';
 
 interface ContestListProps {
   contests: Contest[];
@@ -37,6 +38,8 @@ export const ContestList: React.FC<ContestListProps> = ({
     <View style={styles.container}>
       {displayedContests.map((contest) => {
         const startTime = new Date(contest.startTime);
+        const platformColor = PLATFORMS[contest.platformId]?.color || colors.primary;
+        
         return (
           <Card 
             key={contest.id} 
@@ -46,8 +49,8 @@ export const ContestList: React.FC<ContestListProps> = ({
             onPress={() => contest.url && Linking.openURL(contest.url)}
           >
             <Card.Content style={styles.cardContent}>
-              <View style={styles.iconContainer}>
-                 <List.Icon icon="trophy-outline" color={colors.primary} />
+              <View style={[styles.iconContainer, { backgroundColor: platformColor + '15' }]}>
+                 <List.Icon icon="trophy-outline" color={platformColor} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text variant="titleMedium" numberOfLines={1}>{contest.name}</Text>

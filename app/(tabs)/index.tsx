@@ -2,7 +2,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
-import { Appbar, Button, FAB, Surface, Text, useTheme } from 'react-native-paper';
+import { Appbar, Button, Surface, Text, useTheme } from 'react-native-paper';
 import { ContestList } from '../../src/components/contests/ContestList';
 import { ProfileCarousel } from '../../src/components/profile/ProfileCarousel';
 import { useContestStore } from '../../src/stores/useContestStore';
@@ -141,14 +141,7 @@ export default function DashboardScreen() {
       </ScrollView>
 
       {/* Floating Action Button for Sync */}
-      {!isContestLoading && (
-        <FAB
-          icon="refresh"
-          style={[styles.fab, { backgroundColor: colors.tertiaryContainer }]}
-          color={colors.onTertiaryContainer}
-          onPress={handleSync}
-        />
-      )}
+
     </View>
   );
 }
@@ -196,10 +189,5 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     borderRadius: 16,
   },
-  fab: {
-    position: 'absolute',
-    margin: 20,
-    right: 0,
-    bottom: 0,
-  },
+
 });

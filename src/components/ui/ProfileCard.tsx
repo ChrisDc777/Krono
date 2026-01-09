@@ -9,15 +9,30 @@ interface ProfileCardProps {
   profile: UnifiedProfile;
 }
 
+
+export const ProfileCard: React.FC<ProfileCardProps> = ({ profile }) => {
+  const { colors, dark } = useTheme();
+  // 'dark' is a property of MD3Theme.
+  // We can also assume standard dark mode behavior or just rely on 'colors' for most things.
+  // Let's bring back isDarkMode if we need it for AtCoder specifically.
+  // A safe way if our theme supports it or we inferred it:
+  const isDarkMode = dark; 
+
   // Platform specific color logic
   const platformConfig = PLATFORMS[profile.platformId];
-  const platformColor = platformConfig?.color || colors.primary;
-  const platformIcon = platformConfig?.icon || 'code-tags';
-  const isDarkPlatform = profile.platformId === 'atcoder' && isDarkMode; // Handle AtCoder white on dark
+  let platformColor = platformConfig?.color || colors.primary;
+  
+  // Special Handling for AtCoder (White Brand Color) through "effective" color
+  // In Light Mode: Use Black (#000000) so it's visible.
+  // In Dark Mode: Keep White (#FFFFFF) as it glows nicely against dark bg.
+  if (profile.platformId === 'atcoder' && !isDarkMode) {
+      platformColor = '#000000';
+  }
 
-  // Dynamic Text Color for contrast on colored backgrounds
-  // Simple heuristic: if platform is AtCoder (white/black), handle explicitly
-  const textColor = profile.platformId === 'atcoder' && !isDarkMode ? '#000000' : platformColor;
+  // Text color on top of the platformColor (for pills/rank)
+  // If the background is white (AtCoder in Dark Mode), text must be black.
+  // Otherwise (usual colored brands or Black AtCoder), text can be white.
+  const onPlatformColor = (profile.platformId === 'atcoder' && isDarkMode) ? '#000000' : '#FFFFFF';
   
   return (
     <Card style={[styles.card, { borderColor: platformColor + '40', backgroundColor: platformColor + '05' }]} mode="outlined">
@@ -27,11 +42,11 @@ interface ProfileCardProps {
         <View style={styles.header}>
             <View style={[styles.platformPill, { backgroundColor: platformColor + '20' }]}>
                  <MaterialCommunityIcons 
-                    name={platformIcon as any} 
+                    name={platformConfig?.icon as any || 'code-tags'} 
                     size={16} 
-                    color={profile.platformId === 'atcoder' && isDarkMode ? '#000000' : platformColor} 
+                    color={platformColor} 
                  />
-                 <Text variant="labelSmall" style={{ marginLeft: 6, color: profile.platformId === 'atcoder' && isDarkMode ? '#000000' : platformColor, fontWeight: '700' }}>
+                 <Text variant="labelSmall" style={{ marginLeft: 6, color: platformColor, fontWeight: '700' }}>
                     {profile.platformId.toUpperCase()}
                  </Text>
             </View>
@@ -44,7 +59,7 @@ interface ProfileCardProps {
         <View style={styles.heroContainer}>
             {profile.rating !== undefined ? (
                 <>
-                    <Text variant="displaySmall" style={{ fontWeight: '900', color: textColor, lineHeight: 42 }}>
+                    <Text variant="displaySmall" style={{ fontWeight: '900', color: platformColor, lineHeight: 42 }}>
                         {profile.rating}
                     </Text>
                     <Text variant="labelSmall" style={{ color: colors.outline, marginTop: 4, marginBottom: 12, letterSpacing: 2, textTransform: 'uppercase' }}>
@@ -63,11 +78,9 @@ interface ProfileCardProps {
                     <Text 
                         variant="bodyLarge" 
                         style={{ 
-                            color: profile.platformId === 'atcoder' && !isDarkMode ? '#FFFFFF' : '#FFFFFF', // Force white text on colored bg
+                            color: onPlatformColor, 
                             fontWeight: '700', 
                             textAlign: 'center',
-                            textShadowColor: 'rgba(0,0,0,0.2)',
-                            textShadowRadius: 2
                         }}
                     >
                         {profile.rank}

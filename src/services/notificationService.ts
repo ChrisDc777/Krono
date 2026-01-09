@@ -8,6 +8,8 @@ import { Contest } from '../types/contest';
 import Constants, { ExecutionEnvironment } from 'expo-constants';
 
 try {
+  // Expo Go (StoreClient) doesn't support requestPermissionsAsync/push tokens well anymore
+  // But local notifications often still work if we don't ask for tokens.
   const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
   
   if (!isExpoGo) {
@@ -20,9 +22,20 @@ try {
         shouldShowList: true,
       }),
     });
+  } else {
+      // In Expo Go, be more lenient or just skip handler setup if it throws
+       Notifications.setNotificationHandler({
+          handleNotification: async () => ({
+            shouldShowAlert: true,
+            shouldPlaySound: false,
+            shouldSetBadge: false,
+            shouldShowBanner: true,
+            shouldShowList: true,
+          }),
+        });
   }
 } catch (e) {
-  console.warn('Notification handler failed:', e);
+  console.log('Notification handler setup skipped/failed (likely Expo Go restriction):', e);
 }
 
 export const notificationService = {

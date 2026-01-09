@@ -27,12 +27,16 @@ if ($null -eq $jdkPath) {
 $env:JAVA_HOME = $jdkPath
 $env:Path = "$jdkPath\bin;" + $env:Path
 
+Write-Host "Java Version Check:"
+& "$jdkPath\bin\java.exe" -version
+
 Write-Host "Starting Gradle Build..."
 Set-Location android
 
 if (Test-Path ".\gradlew.bat") {
-    .\gradlew.bat assembleRelease
-} else {
+    .\gradlew.bat assembleRelease -PreactNativeArchitectures=arm64-v8a "-Dorg.gradle.java.home=$jdkPath"
+}
+else {
     Write-Error "gradlew.bat not found in android directory. Did you run 'npx expo prebuild'?"
     exit 1
 }

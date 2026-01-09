@@ -51,6 +51,7 @@ export const registerBackgroundTask = async () => {
             console.log('[BackgroundFetch] Task registered');
         }
     } catch (e) {
-        console.warn('Background fetch registration failed (Simulators/Expo Go constraints):', e);
+        // Just log in dev, don't warn loudly as this is expected in Expo Go
+        console.log('Background fetch registration failed (Normal in Expo Go):', e);
     }
 };

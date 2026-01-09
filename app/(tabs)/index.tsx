@@ -1,18 +1,18 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { FAB, IconButton } from 'react-native-paper';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { Appbar, Button, FAB, Surface, Text, useTheme } from 'react-native-paper';
 import { ContestList } from '../../src/components/contests/ContestList';
 import { ProfileCarousel } from '../../src/components/profile/ProfileCarousel';
-import { useTheme } from '../../src/hooks/useTheme';
 import { useContestStore } from '../../src/stores/useContestStore';
 import { useProfileStore } from '../../src/stores/useProfileStore';
 
 export default function DashboardScreen() {
   const router = useRouter();
+  /* Use Paper's hook which returns our MD3 theme structure */
   const { colors } = useTheme();
+
   const { profiles, loadProfiles, refreshProfiles, isLoading: isProfileLoading } = useProfileStore();
   const { upcomingContests, loadContests, syncContests, isLoading: isContestLoading } = useContestStore();
 
@@ -33,24 +33,24 @@ export default function DashboardScreen() {
 
   const isLoading = isProfileLoading || isContestLoading;
 
+  // Helper logic to find the very next contest
+  const nextContest = upcomingContests.length > 0 ? upcomingContests[0] : null;
+
+  // Filter other contests: upcoming (excluding first) within next 7 days
+  const sevenDaysFromNow = Date.now() + 7 * 24 * 60 * 60 * 1000;
+  const otherContests = upcomingContests.length > 0 
+    ? upcomingContests.slice(1).filter(c => {
+        const t = c.startTime instanceof Date ? c.startTime.getTime() : new Date(c.startTime).getTime();
+        return t <= sevenDaysFromNow;
+    }) 
+    : [];
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-            <Text style={[styles.date, { color: colors.text.secondary }]}>
-                {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).toUpperCase()}
-            </Text>
-            <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Dashboard</Text>
-        </View>
-        <IconButton
-          icon="cog-outline"
-          size={24}
-          iconColor={colors.text.primary}
-          onPress={() => router.push('/settings')}
-          style={{ margin: 0 }}
-        />
-      </View>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Appbar.Header elevated mode="center-aligned" style={{ backgroundColor: colors.surface }}>
+        <Appbar.Content title="Dashboard" titleStyle={{ fontWeight: 'bold' }} />
+        <Appbar.Action icon="cog-outline" onPress={() => router.push('/settings')} />
+      </Appbar.Header>
 
       <ScrollView 
         contentContainerStyle={styles.content}
@@ -59,44 +59,83 @@ export default function DashboardScreen() {
           <RefreshControl 
                 refreshing={isLoading} 
                 onRefresh={handleSync} 
+                colors={[colors.primary]}
                 tintColor={colors.primary} 
           />
         }
       >
-        {/* Profile Statistics Carousel */}
-        <View style={styles.profilesSection}>
-          {profiles.length === 0 ? (
-            <View style={[styles.emptyState, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-              <MaterialCommunityIcons name="card-account-details-outline" size={48} color={colors.text.muted} />
-              <Text style={[styles.emptyText, { color: colors.text.primary }]}>Track your progress</Text>
-              <Text style={[styles.emptySubText, { color: colors.text.secondary }]}>Add your coding profiles to get started</Text>
-              <FAB
-                icon="plus"
-                label="Connect Profile"
-                style={[styles.connectButton, { backgroundColor: colors.primary }]}
-                color={colors.text.inverse}
-                onPress={handleGoToSettings}
-                small
-              />
-            </View>
-          ) : (
-            <View>
-              <ProfileCarousel profiles={profiles} />
-              <View style={styles.addCardContainer}>
-                    {/* Placeholder for "Add" button if we want it next to carousel, or just leave FAB below */}
-              </View>
-            </View>
-          )}
+        {/* Welcome / Header Section */}
+        <View style={styles.headerSection}>
+            <Text variant="headlineSmall" style={{ fontWeight: 'bold', color: colors.onSurface }}>
+                Hello, Coder! 👋
+            </Text>
+            <Text variant="bodyLarge" style={{ color: colors.secondary }}>
+                {upcomingContests.length} contests coming up.
+            </Text>
         </View>
 
-        {/* Timeline Section */}
-        <View style={styles.timelineSection}>
-          <Text style={[styles.sectionTitle, { color: colors.text.primary }]}>Timeline</Text>
+        {/* Profiles Section */}
+        <View style={styles.sectionContainer}>
+             <View style={styles.sectionHeader}>
+                <Text variant="titleLarge" style={{ fontWeight: 'bold', color: colors.onSurface }}>Profiles</Text>
+            </View>
+            <View style={styles.profilesWrapper}>
+             {profiles.length === 0 ? (
+                <Surface style={[styles.emptyState, { backgroundColor: colors.surfaceVariant }]} elevation={0}>
+                <MaterialCommunityIcons name="card-account-details-outline" size={40} color={colors.onSurfaceVariant} />
+                <Text variant="bodyLarge" style={{ marginVertical: 8, fontWeight: '600' }}>No Profiles Connected</Text>
+                <Button mode="text" onPress={handleGoToSettings}>Connect Now</Button>
+                </Surface>
+             ) : (
+                <ProfileCarousel profiles={profiles} />
+             )}
+            </View>
+        </View>
+
+        {/* Hero: Next Contest (Smaller/Compact) */}
+        {nextContest && (
+            <View style={styles.heroSection}>
+                <Surface style={[styles.heroCard, { backgroundColor: colors.primaryContainer }]} elevation={2}>
+                    <View style={styles.heroHeader}>
+                        <Text variant="labelMedium" style={{ color: colors.onPrimaryContainer, opacity: 0.7, fontWeight: 'bold' }}>UP NEXT</Text>
+                        <MaterialCommunityIcons name="clock-outline" size={18} color={colors.onPrimaryContainer} />
+                    </View>
+                    
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginVertical: 8 }}>
+                         <View style={{ flex: 1, marginRight: 8 }}>
+                            <Text variant="titleLarge" style={{ color: colors.onPrimaryContainer, fontWeight: 'bold' }} numberOfLines={2}>
+                                {nextContest.name}
+                            </Text>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
+                                <MaterialCommunityIcons name="code-tags" size={16} color={colors.onPrimaryContainer} />
+                                <Text variant="bodyMedium" style={{ color: colors.onPrimaryContainer }}>{nextContest.platformId}</Text>
+                            </View>
+                         </View>
+                         
+                         <Button 
+                            mode="contained" 
+                            buttonColor={colors.primary} 
+                            textColor={colors.onPrimary}
+                            compact
+                            onPress={() => { /* Navigate */}}
+                        >
+                            View
+                        </Button>
+                    </View>
+                </Surface>
+            </View>
+        )}
+
+        {/* Other Contests List */}
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionHeader}>
+            <Text variant="titleLarge" style={{ fontWeight: 'bold', color: colors.onSurface }}>Upcoming</Text>
+          </View>
           
           <ContestList 
-             contests={upcomingContests} 
-             emptyMessage="No upcoming contests found. Pull to refresh!"
-             limit={5}
+             contests={otherContests} 
+             emptyMessage="No contests in the next 7 days."
+             limit={10}
           />
         </View>
       </ScrollView>
@@ -105,12 +144,12 @@ export default function DashboardScreen() {
       {!isContestLoading && (
         <FAB
           icon="refresh"
-          style={[styles.fab, { backgroundColor: colors.primary }]}
+          style={[styles.fab, { backgroundColor: colors.tertiaryContainer }]}
+          color={colors.onTertiaryContainer}
           onPress={handleSync}
-          color={colors.text.inverse}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -118,73 +157,49 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    paddingHorizontal: 24,
-    paddingVertical: 20,
-    marginBottom: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center'
-  },
-  date: {
-      fontSize: 12,
-      fontWeight: 'bold',
-      letterSpacing: 2,
-      marginBottom: 0,
-      textTransform: 'uppercase'
-  },
-  headerTitle: {
-    fontSize: 32,
-    fontWeight: '900',
-    letterSpacing: -1
-  },
   content: {
-    paddingBottom: 80,
+    paddingBottom: 100,
   },
-  profilesSection: {
-    marginBottom: 32,
+  headerSection: {
+      paddingHorizontal: 20,
+      paddingTop: 24,
+      paddingBottom: 16
   },
-  addCardContainer: {
+  heroSection: {
+      paddingHorizontal: 20,
+      marginBottom: 24
+  },
+  heroCard: {
+      borderRadius: 20, // Slightly tighter radius
+      padding: 16, // Reduced padding from 20
+  },
+  heroHeader: {
       flexDirection: 'row',
-      justifyContent: 'center',
-      marginTop: 10
+      justifyContent: 'space-between',
+      alignItems: 'center'
+  },
+  // Removed heroFooter as it's inline now
+  sectionContainer: {
+      marginBottom: 24
+  },
+  sectionHeader: {
+    paddingHorizontal: 20,
+    marginBottom: 12,
+  },
+  profilesWrapper: {
+      // ProfileCarousel has its own padding
   },
   emptyState: {
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 32,
-    marginHorizontal: 24,
-    borderWidth: 2,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: '900',
-    marginTop: 16,
-    textTransform: 'uppercase'
-  },
-  emptySubText: {
-    textAlign: 'center',
-    marginTop: 8,
-    marginBottom: 20,
-    fontSize: 12
-  },
-  connectButton: {
-      borderRadius: 0 
-  },
-  timelineSection: {
-      paddingHorizontal: 24,
-  },
-  sectionTitle: {
-      fontSize: 20,
-      fontWeight: '900',
-      marginBottom: 20,
-      letterSpacing: 1
+    padding: 24,
+    marginHorizontal: 20,
+    borderRadius: 16,
   },
   fab: {
     position: 'absolute',
-    margin: 24,
+    margin: 20,
     right: 0,
     bottom: 0,
-    borderRadius: 8,
   },
 });

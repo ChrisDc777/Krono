@@ -1,10 +1,7 @@
-import { isSameDay, isTomorrow } from 'date-fns';
+import { format, isSameDay, isTomorrow } from 'date-fns';
 import React, { useEffect, useMemo, useState } from 'react';
 import { RefreshControl, ScrollView, SectionList, StyleSheet, View } from 'react-native';
-import { ActivityIndicator, Chip, Text } from 'react-native-paper';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { TimelineItem } from '../../src/components/ui/TimelineItem';
-import { useTheme } from '../../src/hooks/useTheme';
+import { ActivityIndicator, Appbar, Card, Chip, List, Text, useTheme } from 'react-native-paper';
 import { useContestStore } from '../../src/stores/useContestStore';
 import { Contest } from '../../src/types/contest';
 import { PLATFORMS, PlatformId } from '../../src/types/platform';
@@ -14,7 +11,6 @@ export default function ContestsScreen() {
   const { upcomingContests, loadContests, syncContests, isLoading } = useContestStore();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<PlatformId | 'all'>('all');
-
 
   useEffect(() => {
     loadContests();
@@ -32,7 +28,7 @@ export default function ContestsScreen() {
       const matchesPlatform = selectedPlatform === 'all' || contest.platformId === selectedPlatform;
       return matchesPlatform;
     });
-    // ... rest of logic
+
     const today: Contest[] = [];
     const tomorrow: Contest[] = [];
     const thisWeek: Contest[] = [];
@@ -49,7 +45,6 @@ export default function ContestsScreen() {
       } else if (isTomorrow(startDate)) {
         tomorrow.push(contest);
       } else {
-        // Simple heuristic for "This Week" (next 7 days)
         const diffTime = Math.abs(startDate.getTime() - now.getTime());
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
         if (diffDays <= 7) {
@@ -69,32 +64,56 @@ export default function ContestsScreen() {
     return result;
   }, [upcomingContests, selectedPlatform]);
 
-  return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-      {/* Hero Header */}
-      <View style={styles.heroHeader}>
-         <View>
-             <Text style={[styles.heroLabel, { color: colors.text.secondary }]}>SCHEDULE</Text>
-             <Text style={[styles.heroTitle, { color: colors.text.primary }]}>Contests</Text>
-         </View>
-      </View>
+  const renderContestItem = ({ item }: { item: Contest }) => {
+     const startDate = new Date(item.startTime);
+     const totalMinutes = Math.round(item.durationSeconds / 60);
+     const hours = Math.floor(totalMinutes / 60);
+     const minutes = totalMinutes % 60;
+     const durationText = hours > 0 
+        ? (minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`) 
+        : `${minutes}m`;
+        
+     const platformColor = PLATFORMS[item.platformId]?.color || colors.primary;
 
-      {/* Control Bar (Filter Only) */}
-      <View style={styles.controlBar}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsContainer}>
+     return (
+        <Card style={[styles.card, { borderColor: colors.outlineVariant }]} mode="outlined">
+            <Card.Content style={styles.cardContent}>
+              <View style={[styles.iconContainer, { backgroundColor: platformColor + '15' }]}>
+                 <List.Icon icon="trophy-outline" color={platformColor} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text variant="titleMedium" numberOfLines={1}>{item.name}</Text>
+                <Text variant="bodySmall" style={{ color: colors.secondary }}>
+                   {item.platformId} • {format(startDate, 'HH:mm')}
+                </Text>
+              </View>
+              <View>
+                 <Chip textStyle={{ fontSize: 11 }} style={{ backgroundColor: colors.surfaceVariant }} compact>{durationText}</Chip>
+              </View>
+            </Card.Content>
+        </Card>
+     );
+  };
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Appbar.Header elevated mode="center-aligned" style={{ backgroundColor: colors.surface }}>
+        <Appbar.Content title="Schedule" titleStyle={{ fontWeight: 'bold' }} />
+      </Appbar.Header>
+
+      {/* Chips Filter */}
+      <View style={{ backgroundColor: colors.surface, paddingBottom: 12 }}>
+         <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false} 
+            contentContainerStyle={styles.chipsContainer}
+         >
           <Chip
             selected={selectedPlatform === 'all'}
             onPress={() => setSelectedPlatform('all')}
-            style={[
-                styles.chip, 
-                { backgroundColor: colors.surface, borderColor: colors.border }, 
-                selectedPlatform === 'all' && [styles.chipSelected, { backgroundColor: colors.text.primary, borderColor: colors.primary }]
-            ]}
-            textStyle={{ 
-                color: selectedPlatform === 'all' ? colors.text.inverse : colors.text.primary,
-                fontWeight: '700'
-            }}
+            style={styles.chip}
             showSelectedOverlay
+            mode="outlined"
           >
             All
           </Chip>
@@ -103,18 +122,10 @@ export default function ContestsScreen() {
               key={platform.id}
               selected={selectedPlatform === platform.id}
               onPress={() => setSelectedPlatform(platform.id)}
-              style={[
-                  styles.chip, 
-                  { backgroundColor: colors.surface, borderColor: colors.border }, 
-                  selectedPlatform === platform.id && { backgroundColor: platform.color, borderColor: platform.color }
-              ]}
-              textStyle={{ 
-                  color: selectedPlatform === platform.id 
-                    ? (platform.id === 'atcoder' && isDarkMode ? '#000000' : '#FFFFFF') 
-                    : colors.text.primary,
-                  fontWeight: '700'
-              }}
+              style={[styles.chip, selectedPlatform === platform.id && { borderColor: platform.color, backgroundColor: platform.color + '20' }]}
+              textStyle={selectedPlatform === platform.id ? { color: platform.color, fontWeight: 'bold' } : {}}
               showSelectedOverlay
+              mode="outlined"
             >
               {platform.name}
             </Chip>
@@ -123,44 +134,31 @@ export default function ContestsScreen() {
       </View>
 
       <SectionList
-  // ... rest of list
         sections={sections}
         keyExtractor={(item) => item.id}
-        renderItem={({ item, section, index }) => (
-            <View style={{ paddingHorizontal: 20 }}>
-                <TimelineItem 
-                    contest={item} 
-                    isLast={index === section.data.length - 1} 
-                />
-            </View>
-        )}
+        renderItem={renderContestItem}
         renderSectionHeader={({ section: { title } }) => (
-          <View style={[styles.sectionHeader, { 
-              backgroundColor: colors.background, 
-              borderColor: colors.border 
-          }]}>
-            <View style={[styles.sectionTitleBadge, { backgroundColor: colors.text.primary }]}>
-                <Text style={[styles.sectionTitle, { color: colors.text.inverse }]}>{title}</Text>
-            </View>
-            <View style={[styles.sectionLine, { backgroundColor: colors.border }]} />
+          <View style={[styles.sectionHeader, { backgroundColor: colors.background }]}>
+             <Text variant="titleMedium" style={{ color: colors.primary, fontWeight: 'bold' }}>{title}</Text>
           </View>
         )}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        stickySectionHeadersEnabled={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[colors.primary]} tintColor={colors.primary} />
         }
         ListEmptyComponent={
           !isLoading ? (
             <View style={styles.emptyContainer}>
-                <Text style={[styles.emptyText, { color: colors.text.muted }]}>No contests found matching criteria.</Text>
+                <Text variant="bodyLarge" style={{ color: colors.onSurfaceVariant }}>No contests found.</Text>
             </View>
           ) : (
             <ActivityIndicator style={{ marginTop: 20 }} color={colors.primary} />
           )
         }
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -168,75 +166,42 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  heroHeader: {
-      paddingHorizontal: 24,
-      paddingVertical: 20,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center'
-  },
-  heroLabel: {
-      fontSize: 12,
-      fontWeight: '900',
-      letterSpacing: 2,
-      marginBottom: 4
-  },
-  heroTitle: {
-      fontSize: 42,
-      fontWeight: '900',
-      lineHeight: 42,
-      letterSpacing: -1
-  },
-  controlBar: {
-      paddingBottom: 20,
-      zIndex: 10
-  },
   chipsContainer: {
-    flexDirection: 'row',
+    paddingHorizontal: 16,
     gap: 8,
-    paddingHorizontal: 20
   },
   chip: {
-    borderWidth: 2, // Thick
-    height: 36,
-    borderRadius: 8,
-  },
-  chipSelected: {
-      borderWidth: 2,
+      marginRight: 8
   },
   listContent: {
-    paddingBottom: 40,
-    paddingTop: 10
+    paddingBottom: 20,
+    paddingHorizontal: 16,
   },
   sectionHeader: {
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12
+    paddingVertical: 12,
+    marginTop: 8,
+    marginBottom: 4,
   },
-  sectionTitleBadge: {
-      paddingHorizontal: 12,
-      paddingVertical: 6,
-      borderRadius: 4,
-      marginRight: 12
+  card: {
+      marginBottom: 12,
+      backgroundColor: 'transparent'
   },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-    letterSpacing: 1
+  cardContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      paddingVertical: 12
   },
-  sectionLine: {
-      flex: 1,
-      height: 2,
-      borderRadius: 1
+  iconContainer: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      width: 40,
+      height: 40,
+      borderRadius: 20
   },
   emptyContainer: {
       alignItems: 'center',
-      marginTop: 60
-  },
-  emptyText: {
-      fontWeight: '500'
+      justifyContent: 'center',
+      paddingTop: 60
   }
 });

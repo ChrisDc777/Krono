@@ -1,9 +1,8 @@
+import { format } from 'date-fns';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { ActivityIndicator, Text } from 'react-native-paper';
-import { useTheme } from '../../hooks/useTheme';
+import { ActivityIndicator, Card, List, Text, useTheme } from 'react-native-paper';
 import { Contest } from '../../types/contest';
-import { TimelineItem } from '../ui/TimelineItem';
 
 interface ContestListProps {
   contests: Contest[];
@@ -29,34 +28,67 @@ export const ContestList: React.FC<ContestListProps> = ({
   if (contests.length === 0) {
       return (
           <View style={styles.emptyContainer}>
-               <Text style={[styles.emptyText, { color: colors.text.muted }]}>{emptyMessage}</Text>
+               <Text variant="bodyMedium" style={{ color: colors.onSurfaceVariant }}>{emptyMessage}</Text>
           </View>
       );
   }
 
   return (
     <View style={styles.container}>
-      {displayedContests.map((contest, index) => (
-        <TimelineItem 
-            key={contest.id} 
-            contest={contest} 
-            isLast={index === displayedContests.length - 1} 
-        />
-      ))}
+      {displayedContests.map((contest) => {
+        const startTime = new Date(contest.startTime);
+        return (
+          <Card key={contest.id} style={styles.card} mode="elevated" elevation={2}>
+            <Card.Content style={styles.cardContent}>
+              <View style={styles.iconContainer}>
+                 <List.Icon icon="trophy-outline" color={colors.primary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text variant="titleMedium" numberOfLines={1}>{contest.name}</Text>
+                <Text variant="bodySmall" style={{ color: colors.secondary }}>
+                   {contest.platformId} • {format(startTime, 'MMM d, HH:mm')}
+                </Text>
+              </View>
+              <View>
+                 <Text variant="labelSmall" style={{ color: colors.tertiary }}>
+                    {(() => {
+                        const totalMinutes = Math.round(contest.durationSeconds / 60);
+                        const hours = Math.floor(totalMinutes / 60);
+                        const minutes = totalMinutes % 60;
+                        if (hours > 0 && minutes > 0) return `${hours}h ${minutes}m`;
+                        if (hours > 0) return `${hours}h`;
+                        return `${minutes}m`;
+                    })()}
+                 </Text>
+              </View>
+            </Card.Content>
+          </Card>
+        );
+      })}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-     // Container styles if needed
+     gap: 12,
+     paddingHorizontal: 20 // Added padding to align with other sections
+  },
+  card: {
+    marginBottom: 0
+  },
+  cardContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12
+  },
+  iconContainer: {
+      justifyContent: 'center',
+      alignItems: 'center'
   },
   emptyContainer: {
       paddingVertical: 20,
       alignItems: 'center'
-  },
-  emptyText: {
-      fontSize: 14,
-      fontWeight: '500'
   }
 });
+

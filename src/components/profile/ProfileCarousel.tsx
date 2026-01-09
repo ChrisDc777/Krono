@@ -1,8 +1,7 @@
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { IconButton } from 'react-native-paper';
-import { useTheme } from '../../hooks/useTheme';
+import { ScrollView, StyleSheet } from 'react-native';
+import { Card, IconButton, Text, useTheme } from 'react-native-paper';
 import { UnifiedProfile } from '../../types/user';
 import { ProfileCard } from '../ui/ProfileCard';
 
@@ -24,46 +23,48 @@ export const ProfileCarousel: React.FC<ProfileCarouselProps> = ({ profiles }) =>
         showsHorizontalScrollIndicator={false} 
         contentContainerStyle={styles.container}
         decelerationRate="fast"
-        snapToInterval={316} // 300 width + 16 margin
+        snapToInterval={316} // 300 width + 16 gap
     >
       {profiles.map(profile => (
         <ProfileCard key={profile.id} profile={profile} />
       ))}
       
       {/* "Add Profile" Placeholder Card */}
-      <View style={[styles.addCardPlaceholder, { borderColor: colors.border }]}>
+      <Card 
+        style={[styles.addCard, {  borderColor: colors.outline, backgroundColor: 'transparent' }]}
+        mode="outlined"
+        onPress={handleAddProfile}
+      >
+        <Card.Content style={styles.addCardContent}>
            <IconButton 
               icon="plus" 
               onPress={handleAddProfile} 
-              iconColor={colors.text.muted} 
-              size={30} 
+              iconColor={colors.onSurfaceVariant} 
+              size={32} 
            />
-           <Text style={[styles.addText, { color: colors.text.muted }]}>Add</Text>
-      </View>
+           <Text variant="labelLarge" style={{ color: colors.onSurfaceVariant, textTransform: 'uppercase' }}>Add Profile</Text>
+        </Card.Content>
+      </Card>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 24,
-    paddingVertical: 10
+    paddingHorizontal: 20, 
+    paddingVertical: 10,
+    gap: 16
   },
-  addCardPlaceholder: {
-      width: 100,
+  addCard: {
+      width: 300, // Match ProfileCard width
       height: 260, // Match ProfileCard height
       justifyContent: 'center',
       alignItems: 'center',
-      marginRight: 16,
-      backgroundColor: 'transparent',
-      borderWidth: 2,
       borderStyle: 'dashed',
-      borderRadius: 16
   },
-  addText: {
-      fontSize: 12,
-      marginTop: 8,
-      fontWeight: 'bold',
-      textTransform: 'uppercase'
+  addCardContent: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      flex: 1
   }
 });

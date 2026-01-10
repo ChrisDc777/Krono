@@ -1,7 +1,8 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { format } from 'date-fns';
 import React from 'react';
 import { Linking, StyleSheet, View } from 'react-native';
-import { ActivityIndicator, Card, List, Text, useTheme } from 'react-native-paper';
+import { ActivityIndicator, Surface, Text, useTheme } from 'react-native-paper';
 import { Contest } from '../../types/contest';
 import { PLATFORMS } from '../../types/platform';
 
@@ -18,7 +19,9 @@ export const ContestList: React.FC<ContestListProps> = ({
     limit,
     isLoading = false
 }) => {
-  const { colors } = useTheme();
+  const { colors, dark } = useTheme();
+  // Map 'dark' property to 'isDarkMode' variable for compatibility with existing logic
+  const isDarkMode = dark;
 
   const displayedContests = limit ? contests.slice(0, limit) : contests;
 
@@ -38,40 +41,64 @@ export const ContestList: React.FC<ContestListProps> = ({
     <View style={styles.container}>
       {displayedContests.map((contest) => {
         const startTime = new Date(contest.startTime);
-        const platformColor = PLATFORMS[contest.platformId]?.color || colors.primary;
+        const platformConfig = PLATFORMS[contest.platformId];
+        let platformColor = platformConfig?.color || colors.primary;
         
+        // AtCoder Light Mode Visibility Fix
+        if (contest.platformId === 'atcoder' && !isDarkMode) {
+             platformColor = '#000000';
+        }
+
+        const totalMinutes = Math.round(contest.durationSeconds / 60);
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+        const durationText = hours > 0  ? (minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`) : `${minutes}m`;
+
         return (
-          <Card 
-            key={contest.id} 
-            style={styles.card} 
-            mode="elevated" 
-            elevation={2}
-            onPress={() => contest.url && Linking.openURL(contest.url)}
-          >
-            <Card.Content style={styles.cardContent}>
-              <View style={[styles.iconContainer, { backgroundColor: platformColor + '15' }]}>
-                 <List.Icon icon="trophy-outline" color={platformColor} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text variant="titleMedium" numberOfLines={1}>{contest.name}</Text>
-                <Text variant="bodySmall" style={{ color: colors.secondary }}>
-                   {contest.platformId} • {format(startTime, 'MMM d, HH:mm')}
+          <Surface key={contest.id} style={[styles.card, { backgroundColor: colors.surface }]} elevation={1} mode="flat">
+             {/* Left Tint Bar */}
+             <View style={[styles.tintBar, { backgroundColor: platformColor }]} />
+
+             {/* Watermark */}
+             <View style={styles.watermarkContainer}>
+                  <MaterialCommunityIcons 
+                      name={platformConfig?.icon as any || 'trophy-outline'} 
+                      size={80} 
+                      color={platformColor} 
+                      style={{ opacity: 0.05 }}
+                  />
+             </View>
+
+             <View style={styles.contentContainer} onTouchEnd={() => contest.url && Linking.openURL(contest.url)}>
+                {/* Header: Platform & Date */}
+                <View style={styles.row}>
+                    <View style={[styles.platformPill, { backgroundColor: platformColor + '15' }]}>
+                        <MaterialCommunityIcons name={platformConfig?.icon as any} size={12} color={platformColor} />
+                        <Text style={{ marginLeft: 4, color: platformColor, fontSize: 10, fontWeight: '700', textTransform: 'uppercase' }}>
+                            {contest.platformId}
+                        </Text>
+                    </View>
+                    <Text variant="labelSmall" style={{ color: colors.outline }}>
+                        {format(startTime, 'MMM d, HH:mm')}
+                    </Text>
+                </View>
+
+                {/* Title */}
+                <Text variant="titleMedium" style={{ fontWeight: 'bold', marginVertical: 8, color: colors.onSurface }} numberOfLines={2}>
+                    {contest.name}
                 </Text>
-              </View>
-              <View>
-                 <Text variant="labelSmall" style={{ color: colors.tertiary }}>
-                    {(() => {
-                        const totalMinutes = Math.round(contest.durationSeconds / 60);
-                        const hours = Math.floor(totalMinutes / 60);
-                        const minutes = totalMinutes % 60;
-                        if (hours > 0 && minutes > 0) return `${hours}h ${minutes}m`;
-                        if (hours > 0) return `${hours}h`;
-                        return `${minutes}m`;
-                    })()}
-                 </Text>
-              </View>
-            </Card.Content>
-          </Card>
+
+                {/* Footer: Duration */}
+                 <View style={styles.row}>
+                    <View style={styles.durationPill}>
+                        <MaterialCommunityIcons name="clock-outline" size={12} color={colors.secondary} />
+                        <Text variant="labelSmall" style={{ marginLeft: 4, color: colors.secondary, fontWeight: '600' }}>
+                            {durationText}
+                        </Text>
+                    </View>
+                 </View>
+             </View>
+          </Surface>
         );
       })}
     </View>
@@ -80,20 +107,65 @@ export const ContestList: React.FC<ContestListProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-     gap: 12,
-     paddingHorizontal: 20 // Added padding to align with other sections
+     gap: 16,
+     paddingHorizontal: 20
   },
   card: {
-    marginBottom: 0
+    borderRadius: 16,
+    overflow: 'hidden',
+    position: 'relative',
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.05)', // Subtle border
+    // Shadow for iOS/Android
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 4, // Higher elevation for android
+    marginBottom: 2
   },
-  cardContent: {
+  tintBar: {
+      position: 'absolute',
+      left: 0,
+      top: 0,
+      bottom: 0,
+      width: 6,
+      zIndex: 2
+  },
+  watermarkContainer: {
+      position: 'absolute',
+      right: -10,
+      bottom: -15,
+      zIndex: 1,
+      transform: [{ rotate: '-10deg' }]
+  },
+  contentContainer: {
+      padding: 16,
+      paddingLeft: 22, // Space for tint bar
+      zIndex: 2
+  },
+  row: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center'
+  },
+  platformPill: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 12
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 8,
   },
-  iconContainer: {
-      justifyContent: 'center',
-      alignItems: 'center'
+  durationPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: 'rgba(0,0,0,0.03)',
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 8
   },
   emptyContainer: {
       paddingVertical: 20,

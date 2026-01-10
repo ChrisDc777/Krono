@@ -1,8 +1,7 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
-import { Appbar, Button, Surface, Text, useTheme } from 'react-native-paper';
+import { Appbar, Text, useTheme } from 'react-native-paper';
 import { ContestList } from '../../src/components/contests/ContestList';
 import { ProfileCarousel } from '../../src/components/profile/ProfileCarousel';
 import { useContestStore } from '../../src/stores/useContestStore';
@@ -66,65 +65,28 @@ export default function DashboardScreen() {
       >
         {/* Welcome / Header Section */}
         <View style={styles.headerSection}>
-            <Text variant="headlineSmall" style={{ fontWeight: 'bold', color: colors.onSurface }}>
+            <Text variant="displaySmall" style={{ fontWeight: '800', color: colors.onSurface, letterSpacing: -1 }}>
                 Hello, Coder! 👋
             </Text>
-            <Text variant="bodyLarge" style={{ color: colors.secondary }}>
-                {upcomingContests.length} contests coming up.
+            <Text variant="titleMedium" style={{ color: colors.secondary, marginTop: 4, fontWeight: '500' }}>
+                You have {upcomingContests.length} battles ahead.
             </Text>
         </View>
 
         {/* Profiles Section */}
-        <View style={styles.sectionContainer}>
-             <View style={styles.sectionHeader}>
-                <Text variant="titleLarge" style={{ fontWeight: 'bold', color: colors.onSurface }}>Profiles</Text>
-            </View>
-            <View style={styles.profilesWrapper}>
-             {profiles.length === 0 ? (
-                <Surface style={[styles.emptyState, { backgroundColor: colors.surfaceVariant }]} elevation={0}>
-                <MaterialCommunityIcons name="card-account-details-outline" size={40} color={colors.onSurfaceVariant} />
-                <Text variant="bodyLarge" style={{ marginVertical: 8, fontWeight: '600' }}>No Profiles Connected</Text>
-                <Button mode="text" onPress={handleGoToSettings}>Connect Now</Button>
-                </Surface>
-             ) : (
-                <ProfileCarousel profiles={profiles} />
-             )}
-            </View>
-        </View>
+        {profiles.length > 0 && (
+          <View style={styles.sectionContainer}>
+               <View style={styles.sectionHeader}>
+                  <Text variant="titleLarge" style={{ fontWeight: 'bold', color: colors.onSurface }}>Profiles</Text>
+              </View>
+              <View style={styles.profilesWrapper}>
+                  <ProfileCarousel profiles={profiles} />
+              </View>
+          </View>
+        )}
 
         {/* Hero: Next Contest (Smaller/Compact) */}
-        {nextContest && (
-            <View style={styles.heroSection}>
-                <Surface style={[styles.heroCard, { backgroundColor: colors.primaryContainer }]} elevation={2}>
-                    <View style={styles.heroHeader}>
-                        <Text variant="labelMedium" style={{ color: colors.onPrimaryContainer, opacity: 0.7, fontWeight: 'bold' }}>UP NEXT</Text>
-                        <MaterialCommunityIcons name="clock-outline" size={18} color={colors.onPrimaryContainer} />
-                    </View>
-                    
-                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginVertical: 8 }}>
-                         <View style={{ flex: 1, marginRight: 8 }}>
-                            <Text variant="titleLarge" style={{ color: colors.onPrimaryContainer, fontWeight: 'bold' }} numberOfLines={2}>
-                                {nextContest.name}
-                            </Text>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
-                                <MaterialCommunityIcons name="code-tags" size={16} color={colors.onPrimaryContainer} />
-                                <Text variant="bodyMedium" style={{ color: colors.onPrimaryContainer }}>{nextContest.platformId}</Text>
-                            </View>
-                         </View>
-                         
-                         <Button 
-                            mode="contained" 
-                            buttonColor={colors.primary} 
-                            textColor={colors.onPrimary}
-                            compact
-                            onPress={() => { /* Navigate */}}
-                        >
-                            View
-                        </Button>
-                    </View>
-                </Surface>
-            </View>
-        )}
+
 
         {/* Other Contests List */}
         <View style={styles.sectionContainer}>
@@ -183,11 +145,20 @@ const styles = StyleSheet.create({
       // ProfileCarousel has its own padding
   },
   emptyState: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
+    padding: 16,
     marginHorizontal: 20,
     borderRadius: 16,
+    gap: 16
+  },
+  emptyIconBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
 });
+

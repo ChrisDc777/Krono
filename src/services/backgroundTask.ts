@@ -52,6 +52,6 @@ export const registerBackgroundTask = async () => {
         }
     } catch (e) {
         // Just log in dev, don't warn loudly as this is expected in Expo Go
-        console.log('Background fetch registration failed (Normal in Expo Go):', e);
+        console.log('Background fetch registration failed or restricted:', e);
     }
 };

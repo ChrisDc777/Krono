@@ -1,13 +1,16 @@
+
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { format, isSameDay, isTomorrow } from 'date-fns';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Linking, RefreshControl, ScrollView, SectionList, StyleSheet, View } from 'react-native';
-import { ActivityIndicator, Appbar, Card, Chip, List, Text, useTheme } from 'react-native-paper';
+import { ActivityIndicator, Appbar, Chip, Surface, Text, useTheme } from 'react-native-paper';
 import { useContestStore } from '../../src/stores/useContestStore';
 import { Contest } from '../../src/types/contest';
 import { PLATFORMS, PlatformId } from '../../src/types/platform';
 
 export default function ContestsScreen() {
-  const { colors, isDarkMode } = useTheme();
+  const { colors, dark } = useTheme();
+  const isDarkMode = dark;
   const { upcomingContests, loadContests, syncContests, isLoading } = useContestStore();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<PlatformId | 'all'>('all');
@@ -65,37 +68,62 @@ export default function ContestsScreen() {
   }, [upcomingContests, selectedPlatform]);
 
   const renderContestItem = ({ item }: { item: Contest }) => {
-     const startDate = new Date(item.startTime);
      const totalMinutes = Math.round(item.durationSeconds / 60);
      const hours = Math.floor(totalMinutes / 60);
      const minutes = totalMinutes % 60;
-     const durationText = hours > 0 
-        ? (minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`) 
-        : `${minutes}m`;
+     const durationText = hours > 0  ? (minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`) : `${minutes}m`;
         
-     const platformColor = PLATFORMS[item.platformId]?.color || colors.primary;
+     const platformConfig = PLATFORMS[item.platformId];
+     let platformColor = platformConfig?.color || colors.primary;
+     
+     if (item.platformId === 'atcoder' && !isDarkMode) {
+         platformColor = '#000000';
+     }
 
      return (
-        <Card 
-            style={[styles.card, { borderColor: colors.outlineVariant }]} 
-            mode="outlined"
-            onPress={() => item.url && Linking.openURL(item.url)}
-        >
-            <Card.Content style={styles.cardContent}>
-              <View style={[styles.iconContainer, { backgroundColor: platformColor + '15' }]}>
-                 <List.Icon icon="trophy-outline" color={platformColor} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text variant="titleMedium" numberOfLines={1}>{item.name}</Text>
-                <Text variant="bodySmall" style={{ color: colors.secondary }}>
-                   {item.platformId} • {format(startDate, 'HH:mm')}
-                </Text>
-              </View>
-              <View>
-                 <Chip textStyle={{ fontSize: 11 }} style={{ backgroundColor: colors.surfaceVariant }} compact>{durationText}</Chip>
-              </View>
-            </Card.Content>
-        </Card>
+          <Surface style={[styles.card, { backgroundColor: colors.surface }]} elevation={2}>
+             {/* Left Tint Bar */}
+             <View style={[styles.tintBar, { backgroundColor: platformColor }]} />
+
+             {/* Watermark - Small for list view */}
+             <View style={styles.watermarkContainer}>
+                  <MaterialCommunityIcons 
+                      name={platformConfig?.icon as any || 'trophy-outline'} 
+                      size={60} 
+                      color={platformColor} 
+                      style={{ opacity: 0.05 }}
+                  />
+             </View>
+
+             <View style={styles.contentContainer} onTouchEnd={() => item.url && Linking.openURL(item.url)}>
+                <View style={{ flex: 1, gap: 4 }}>
+                   {/* Header Row */}
+                   <View style={styles.row}>
+                        <View style={[styles.platformPill, { backgroundColor: platformColor + '15' }]}>
+                            <MaterialCommunityIcons name={platformConfig?.icon as any} size={10} color={platformColor} />
+                            <Text style={{ marginLeft: 4, color: platformColor, fontSize: 10, fontWeight: '700', textTransform: 'uppercase' }}>
+                                {item.platformId}
+                            </Text>
+                        </View>
+                        <Text variant="labelSmall" style={{ color: colors.outline }}>
+                            {format(startDate, 'HH:mm')}
+                        </Text>
+                   </View>
+
+                   <Text variant="titleMedium" numberOfLines={1} style={{ fontWeight: 'bold', color: colors.onSurface }}>
+                       {item.name}
+                   </Text>
+                </View>
+
+                {/* Right Side: Duration Pill */}
+                <View style={styles.durationPill}>
+                     <MaterialCommunityIcons name="clock-outline" size={12} color={colors.secondary} />
+                     <Text variant="labelSmall" style={{ marginLeft: 4, color: colors.secondary, fontWeight: '600' }}>
+                        {durationText}
+                     </Text>
+                </View>
+             </View>
+          </Surface>
      );
   };
 
@@ -115,25 +143,43 @@ export default function ContestsScreen() {
           <Chip
             selected={selectedPlatform === 'all'}
             onPress={() => setSelectedPlatform('all')}
-            style={styles.chip}
+            style={[
+                styles.chip,
+                selectedPlatform === 'all' ? { backgroundColor: colors.onSurface } : { backgroundColor: colors.surfaceVariant, borderWidth: 0 }
+            ]}
+            textStyle={{
+                color: selectedPlatform === 'all' ? colors.surface : colors.onSurfaceVariant,
+                fontWeight: '700'
+            }}
             showSelectedOverlay
-            mode="outlined"
           >
             All
           </Chip>
-          {Object.values(PLATFORMS).map(platform => (
+           {Object.values(PLATFORMS).map(platform => {
+             let platformColor = platform.color;
+             if (platform.id === 'atcoder' && !isDarkMode) {
+                 platformColor = '#000000';
+             }
+             const isSelected = selectedPlatform === platform.id;
+             return (
             <Chip
               key={platform.id}
-              selected={selectedPlatform === platform.id}
+              selected={isSelected}
               onPress={() => setSelectedPlatform(platform.id)}
-              style={[styles.chip, selectedPlatform === platform.id && { borderColor: platform.color, backgroundColor: platform.color + '20' }]}
-              textStyle={selectedPlatform === platform.id ? { color: platform.color, fontWeight: 'bold' } : {}}
+              style={[
+                  styles.chip, 
+                  isSelected ? { backgroundColor: platformColor } : { backgroundColor: colors.surfaceVariant, borderWidth: 0 }
+              ]}
+              textStyle={{
+                  color: isSelected ? '#FFFFFF' : colors.onSurfaceVariant,
+                  fontWeight: isSelected ? '700' : '500'
+              }}
               showSelectedOverlay
-              mode="outlined"
             >
               {platform.name}
             </Chip>
-          ))}
+             );
+          })}
         </ScrollView>
       </View>
 
@@ -143,7 +189,7 @@ export default function ContestsScreen() {
         renderItem={renderContestItem}
         renderSectionHeader={({ section: { title } }) => (
           <View style={[styles.sectionHeader, { backgroundColor: colors.background }]}>
-             <Text variant="titleMedium" style={{ color: colors.primary, fontWeight: 'bold' }}>{title}</Text>
+             <Text variant="labelLarge" style={{ color: colors.outline, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1 }}>{title}</Text>
           </View>
         )}
         contentContainerStyle={styles.listContent}
@@ -188,20 +234,57 @@ const styles = StyleSheet.create({
   },
   card: {
       marginBottom: 12,
-      backgroundColor: 'transparent'
+      borderRadius: 12,
+      overflow: 'hidden',
+      position: 'relative',
+      // Shadow
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.1,
+      shadowRadius: 2,
   },
-  cardContent: {
+  tintBar: {
+      position: 'absolute',
+      left: 0,
+      top: 0,
+      bottom: 0,
+      width: 4,
+      zIndex: 2
+  },
+  watermarkContainer: {
+      position: 'absolute',
+      right: -10,
+      bottom: -10,
+      zIndex: 1,
+      transform: [{ rotate: '-10deg' }]
+  },
+  contentContainer: {
       flexDirection: 'row',
       alignItems: 'center',
+      padding: 12,
+      paddingLeft: 18, // Space for tint bar
       gap: 12,
-      paddingVertical: 12
+      zIndex: 2,
   },
-  iconContainer: {
-      justifyContent: 'center',
+  row: {
+      flexDirection: 'row',
       alignItems: 'center',
-      width: 40,
-      height: 40,
-      borderRadius: 20
+      gap: 8,
+  },
+  platformPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      borderRadius: 6,
+  },
+  durationPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: 'rgba(0,0,0,0.03)',
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 8
   },
   emptyContainer: {
       alignItems: 'center',

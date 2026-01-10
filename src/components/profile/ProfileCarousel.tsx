@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
-import { Card, IconButton, Text, useTheme } from 'react-native-paper';
+import { useTheme } from 'react-native-paper';
 import { UnifiedProfile } from '../../types/user';
 import { ProfileCard } from '../ui/ProfileCard';
 
@@ -23,28 +23,10 @@ export const ProfileCarousel: React.FC<ProfileCarouselProps> = ({ profiles }) =>
         showsHorizontalScrollIndicator={false} 
         contentContainerStyle={styles.container}
         decelerationRate="fast"
-        snapToInterval={316} // 300 width + 16 gap
     >
       {profiles.map(profile => (
         <ProfileCard key={profile.id} profile={profile} />
       ))}
-      
-      {/* "Add Profile" Placeholder Card */}
-      <Card 
-        style={[styles.addCard, {  borderColor: colors.outline, backgroundColor: 'transparent' }]}
-        mode="outlined"
-        onPress={handleAddProfile}
-      >
-        <Card.Content style={styles.addCardContent}>
-           <IconButton 
-              icon="plus" 
-              onPress={handleAddProfile} 
-              iconColor={colors.onSurfaceVariant} 
-              size={32} 
-           />
-           <Text variant="labelLarge" style={{ color: colors.onSurfaceVariant, textTransform: 'uppercase' }}>Add Profile</Text>
-        </Card.Content>
-      </Card>
     </ScrollView>
   );
 };

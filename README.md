@@ -1,29 +1,42 @@
-# Krono ⏳
+# ⏳ Krono - Competitive Programming Tracker
 
-**Master your coding timeline.**
+**Krono** is a beautiful, modern mobile application designed for competitive programmers. It helps you track upcoming contests across multiple platforms, sync your profile stats, and never miss a round with smart reminders.
 
-Krono is a comprehensive mobile application designed for competitive programmers to track their progress and stay updated with upcoming contests across multiple platforms.
+Built with **React Native (Expo)** and **Material Design 3**.
 
-![Krono Dashboard](https://via.placeholder.com/800x400?text=Krono+Dashboard+Preview)
+---
 
 ## ✨ Features
 
-- **Unified Dashboard**: View your profiles and stats from **Codeforces**, **LeetCode**, **CodeChef**, and **AtCoder** in one place.
-- **Premium Timeline**: A sleek, vertical timeline view of all upcoming contests, ensuring you never miss a match.
-- **Detailed Statistics**: Track your ratings, max ratings, ranks, and total problems solved.
-- **Modern UI**: Built with a sophisticated "Premium Midnight" theme (Slate/Zinc & Indigo) featuring glassmorphism and smooth gradients.
-- **Offline Support**: Caches contest and profile data for key information access without a network.
-- **Synthetic Forecasting**: Automatically forecasts future contest dates for platforms with limited API schedules (e.g., AtCoder).
+- **🏆 Contest Tracking**: View upcoming contests from Codeforces, LeetCode, AtCoder, CodeChef, and more.
+- **📊 Profile Sync**: Connect your profiles to see your live ratings, ranks, and problem solved counts.
+- **🔔 Smart Notifications**: Get reminders 15 minutes or 1 hour before a contest starts.
+- **🎨 Modern UI**: A sleek, "Neobrutalism meets Material You" aesthetic with Dark/Light mode support.
+- **⚡ Background Sync**: Keeps your contest schedule updated even when you're away.
+
+---
+
+## 📱 Screenshots
+
+|                     **Dashboard**                     |                 **Profile Stats**                 |                **Settings & Theme**                 |
+| :---------------------------------------------------: | :-----------------------------------------------: | :-------------------------------------------------: |
+| ![Dashboard](assets/images/dashboard_placeholder.png) | ![Profile](assets/images/profile_placeholder.png) | ![Settings](assets/images/settings_placeholder.png) |
+|                 _Clean schedule view_                 |               _Detailed user stats_               |                _Highly customizable_                |
+
+_(Place screenshots in `assets/images/` with the names above)_
+
+---
 
 ## 🛠️ Tech Stack
 
-- **Framework**: [React Native](https://reactnative.dev/) with [Expo](https://expo.dev/) (SDK 50+)
-- **Router**: [Expo Router](https://docs.expo.dev/router/introduction/) (v3)
-- **Language**: TypeScript
+- **Framework**: [React Native](https://reactnative.dev/) with [Expo SDK 52](https://expo.dev/)
+- **UI System**: [React Native Paper](https://callstack.github.io/react-native-paper/) (Material Design 3)
 - **State Management**: [Zustand](https://github.com/pmndrs/zustand)
-- **Database**: [Expo SQLite](https://docs.expo.dev/versions/latest/sdk/sqlite/)
-- **UI Components**: [React Native Paper](https://callstack.github.io/react-native-paper/)
-- **Styling**: Standard StyleSheet + Expo Linear Gradient
+- **Navigation**: [Expo Router](https://docs.expo.dev/router/introduction/)
+- **Storage**: AsyncStorage
+- **Icons**: Material Community Icons
+
+---
 
 ## 🚀 Getting Started
 
@@ -31,6 +44,7 @@ Krono is a comprehensive mobile application designed for competitive programmers
 
 - Node.js (v18+)
 - npm or yarn
+- iOS Simulator or Android Emulator (or physical device with Expo Go)
 
 ### Installation
 
@@ -45,28 +59,29 @@ Krono is a comprehensive mobile application designed for competitive programmers
 
    ```bash
    npm install
-   # or
-   npx expo install
    ```
 
-3. **Start the development server**
+3. **Start the app**
 
    ```bash
    npm start
    ```
 
-4. **Run on device/simulator**
+4. **Run on device**
    - Press `a` for Android Emulator
    - Press `i` for iOS Simulator
-   - Scan the QR code with the Expo Go app on your physical device.
+   - Scan the QR code with Expo Go on your phone
 
-## 📱 Platforms Supported
+---
 
-- **Codeforces**: Full profile stats & contest schedule.
-- **LeetCode**: Contest rating, ranking, and solved count.
-- **CodeChef**: Current rating, stars, and contests.
-- **AtCoder**: Rating, history, and contest schedule (with auto-forecast).
+## 📝 Configuration
 
-## 📄 License
+You can customize app behavior in `src/utils/constants.ts` or through the in-app **Settings** screen:
 
-This project is licensed under the MIT License.
+- Toggle Dark/Light mode
+- Enable/Disable background sync
+- Manage notification intervals
+
+---
+
+Made with ❤️ by Meet

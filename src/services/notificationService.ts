@@ -45,13 +45,25 @@ export const notificationService = {
       let finalStatus = existingStatus;
       
       if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
+        // We only request permissions if not already granted.
+        // On Android 13+, this asks for POST_NOTIFICATIONS.
+        const { status } = await Notifications.requestPermissionsAsync({
+           ios: {
+             allowAlert: true,
+             allowBadge: true,
+             allowSound: true,
+           },
+           // On Android, strictly for local, we usually don't need extra config here
+           // but keeping it simple might help avoid triggering remote push logic if possible.
+        });
         finalStatus = status;
       }
       
       return finalStatus === 'granted';
     } catch (error) {
-      console.warn('Notifications not available:', error);
+      console.log('Notification permissions check failed (possibly Expo Go restriction):', error);
+      // In Expo Go, we might default to "true" or "false" depending on whether we want to fail silently.
+      // Returning false disables the functionality, which is safer.
       return false;
     }
   },

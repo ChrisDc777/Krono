@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Card, Divider, Icon, Text, useTheme } from 'react-native-paper';
+import { Surface, Text, useTheme } from 'react-native-paper';
 import { PLATFORMS } from '../../types/platform';
 import { UnifiedProfile } from '../../types/user';
 
@@ -34,125 +34,116 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({ profile }) => {
   // Otherwise (usual colored brands or Black AtCoder), text can be white.
   const onPlatformColor = (profile.platformId === 'atcoder' && isDarkMode) ? '#000000' : '#FFFFFF';
   
+  // Check for valid profile data
+  const handle = profile.username || 'Unknown';
+  const rating = profile.rating !== undefined ? profile.rating : 'Unrated';
+  const rank = profile.rank || '';
+
   return (
-    <Card style={[styles.card, { borderColor: platformColor + '40', backgroundColor: platformColor + '05' }]} mode="outlined">
+    <Surface style={[styles.card, { backgroundColor: platformColor }]} elevation={4}>
+      {/* Watermark Icon - Fills spacing */}
+      <View style={styles.watermarkContainer}>
+           <MaterialCommunityIcons 
+              name={platformConfig?.icon as any || 'code-tags'} 
+              size={140} 
+              color={onPlatformColor} 
+              style={{ opacity: 0.1 }}
+           />
+      </View>
+
       <View style={styles.cardInner}>
         
-        {/* Header: Platform & Handle */}
+        {/* Header: Platform & Solved Count */}
         <View style={styles.header}>
-            <View style={[styles.platformPill, { backgroundColor: platformColor + '20' }]}>
+            <View style={[styles.platformPill, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
                  <MaterialCommunityIcons 
                     name={platformConfig?.icon as any || 'code-tags'} 
-                    size={16} 
-                    color={platformColor} 
+                    size={14} 
+                    color={onPlatformColor} 
                  />
-                 <Text variant="labelSmall" style={{ marginLeft: 6, color: platformColor, fontWeight: '700' }}>
-                    {profile.platformId.toUpperCase()}
+                 <Text variant="labelSmall" style={{ marginLeft: 4, color: onPlatformColor, fontWeight: '800', fontSize: 10 }}>
+                    {profile.platformId?.toUpperCase()}
                  </Text>
             </View>
-            <Text variant="titleSmall" style={{ fontWeight: 'bold', color: colors.onSurface, opacity: 0.8 }} numberOfLines={1}>
-                @{profile.username}
-            </Text>
+            
+            <View style={[styles.statPill, { backgroundColor: 'rgba(0,0,0,0.1)' }]}>
+                  <MaterialCommunityIcons name="check-decagram-outline" size={14} color={onPlatformColor} />
+                  <Text variant="labelSmall" style={{ marginLeft: 4, color: onPlatformColor, fontWeight: '700' }}>
+                    {profile.problemsSolved || 0}
+                  </Text>
+            </View>
         </View>
 
-        {/* Hero: Rating & Rank */}
+        {/* Hero: Rating, Rank, Handle */}
         <View style={styles.heroContainer}>
             {profile.rating !== undefined ? (
-                <>
-                    <Text variant="displaySmall" style={{ fontWeight: '900', color: platformColor, lineHeight: 42 }}>
-                        {profile.rating}
-                    </Text>
-                    <Text variant="labelSmall" style={{ color: colors.outline, marginTop: 4, marginBottom: 12, letterSpacing: 2, textTransform: 'uppercase' }}>
-                        Rating
-                    </Text>
-                </>
+                <Text variant="displayLarge" style={{ fontWeight: '900', color: onPlatformColor, lineHeight: 60, letterSpacing: -2, includeFontPadding: false }}>
+                    {rating}
+                </Text>
             ) : (
-                 <Text variant="headlineSmall" style={{ fontWeight: 'bold', color: colors.outline, fontStyle: 'italic', marginVertical: 12 }}>
-                    Unrated
+                 <Text variant="headlineMedium" style={{ fontWeight: 'bold', color: onPlatformColor, fontStyle: 'italic', opacity: 0.8 }}>
+                    {rating}
                  </Text>
             )}
+             
+            {rank ? (
+                <Text variant="titleMedium" style={{ color: onPlatformColor, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1, opacity: 0.9 }}>
+                    {rank}
+                </Text>
+            ) : null}
 
-            {/* Rank Title - Full Width, Centered, Tinted Background */}
-            {profile.rank && (
-                <View style={[styles.rankContainer, { backgroundColor: platformColor }]}>
-                    <Text 
-                        variant="bodyLarge" 
-                        style={{ 
-                            color: onPlatformColor, 
-                            fontWeight: '700', 
-                            textAlign: 'center',
-                        }}
-                    >
-                        {profile.rank}
-                    </Text>
-                </View>
-            )}
-        </View>
-
-        <Divider style={{ backgroundColor: colors.outlineVariant, marginVertical: 12, opacity: 0.5 }} />
-
-        {/* Footer: Stats (Problems Solved) */}
-        <View style={styles.footer}>
-             <View style={styles.statItem}>
-                  <Icon source="check-circle-outline" size={18} color={colors.secondary} />
-                  <Text variant="bodyMedium" style={{ marginLeft: 6, color: colors.onSurfaceVariant }}>
-                    <Text style={{ fontWeight: 'bold', color: colors.onSurface }}>{profile.problemsSolved || 0}</Text> Solved
-                  </Text>
-             </View>
+            <Text variant="bodyMedium" style={{ fontWeight: '600', color: onPlatformColor, opacity: 0.75, marginTop: 4 }}>
+                @{handle}
+            </Text>
         </View>
       </View>
-    </Card>
+    </Surface>
   );
 };
 
 const styles = StyleSheet.create({
   card: {
-    width: 300, 
-    minHeight: 260,
+    width: 280, // Slightly narrower for better carousel feel
+    height: 180, // Compact height
     borderRadius: 24,
     marginRight: 0,
-    borderWidth: 1.5, // Slightly thicker border
+    borderWidth: 0, // Remove border for cleaner look
+    overflow: 'hidden', // Ensure background doesn't bleed
   },
   cardInner: {
       flex: 1,
-      padding: 20,
-      justifyContent: 'space-between'
+      padding: 16,
+      zIndex: 2
+  },
+  watermarkContainer: {
+      position: 'absolute',
+      right: -20,
+      bottom: -20,
+      zIndex: 1,
+      transform: [{ rotate: '-10deg' }]
   },
   header: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 4
   },
   platformPill: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingHorizontal: 10,
-      paddingVertical: 6,
-      borderRadius: 100,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 8,
+  },
+  statPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 12,
   },
   heroContainer: {
-      alignItems: 'center',
       justifyContent: 'center',
       flex: 1,
-      marginVertical: 4
+      paddingVertical: 8
   },
-  rankContainer: {
-      width: '100%',
-      paddingVertical: 8,
-      paddingHorizontal: 12,
-      borderRadius: 12,
-      marginTop: 8,
-      alignItems: 'center',
-      justifyContent: 'center'
-  },
-  footer: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center'
-  },
-  statItem: {
-      flexDirection: 'row',
-      alignItems: 'center'
-  }
 });

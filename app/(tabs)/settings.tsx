@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import {
     Appbar,
-    Avatar,
     Button,
     Card,
     Dialog,
@@ -11,6 +10,7 @@ import {
     IconButton,
     List,
     Portal,
+    Surface,
     Switch,
     Text,
     TextInput,
@@ -18,10 +18,12 @@ import {
 } from 'react-native-paper';
 import { useProfileStore } from '../../src/stores/useProfileStore';
 import { useSettingsStore } from '../../src/stores/useSettingsStore';
+import { useThemeStore } from '../../src/stores/useThemeStore';
 import { PLATFORMS, PlatformId } from '../../src/types/platform';
 
 export default function SettingsScreen() {
   const { colors } = useTheme();
+  const { isDarkMode, toggleTheme } = useThemeStore();
   const { profiles, addProfile, removeProfile, isLoading } = useProfileStore();
   const { 
       notificationsEnabled, 
@@ -63,6 +65,18 @@ export default function SettingsScreen() {
       </Appbar.Header>
 
       <ScrollView contentContainerStyle={styles.content}>
+
+        {/* Appearance */}
+        <List.Section>
+           <List.Subheader>Appearance</List.Subheader>
+           <Card style={styles.card} mode="elevated" elevation={1}>
+             <List.Item
+                title="Dark Mode"
+                left={props => <List.Icon {...props} icon="theme-light-dark" />}
+                right={() => <Switch value={isDarkMode} onValueChange={toggleTheme} />}
+             />
+           </Card>
+        </List.Section>
         
         {/* Notifications */}
         <List.Section>
@@ -102,51 +116,69 @@ export default function SettingsScreen() {
         </List.Section>
 
         {/* Connected Profiles */}
-        <List.Section>
-           <List.Subheader>Connected Profiles</List.Subheader>
-           <Card style={styles.card} mode="elevated" elevation={1}>
-             {profiles.length === 0 ? (
-                 <List.Item title="No profiles connected" titleStyle={{ fontStyle: 'italic', color: colors.outline }} />
-             ) : (
-                profiles.map((profile, index) => (
-                    <React.Fragment key={profile.id}>
-                        <List.Item
-                            title={profile.username}
-                            description={`${profile.platformId} • ${profile.rating || 'Unrated'}`}
-                            left={props => (
-                                <Avatar.Icon {...props} size={40} icon="account" style={{ backgroundColor: colors.secondaryContainer }} color={colors.onSecondaryContainer} />
-                            )}
-                            right={props => (
-                                <IconButton {...props} icon="delete-outline" iconColor={colors.error} onPress={() => removeProfile(profile.id)} />
-                            )}
+        <View style={styles.sectionContainer}>
+           <Text variant="titleMedium" style={styles.sectionTitle}>Connected Profiles</Text>
+           <Surface style={styles.settingsCard} elevation={1}>
+            <View style={styles.profileList}>
+              {profiles.length === 0 ? (
+                  <Text variant="bodyMedium" style={{ fontStyle: 'italic', color: colors.outline, textAlign: 'center', marginVertical: 12 }}>
+                    No profiles connected yet.
+                  </Text>
+              ) : (
+                 profiles.map((profile) => {
+                    const platformConfig = PLATFORMS[profile.platformId];
+                    let platformColor = platformConfig?.color || colors.primary;
+                    if (profile.platformId === 'atcoder' && !isDarkMode) {
+                         platformColor = '#000000';
+                    }
+
+                    return (
+                     <View key={profile.id} style={[styles.profileRow, { borderLeftColor: platformColor }]}>
+                        <View style={{ flex: 1 }}>
+                            <Text variant="titleSmall" style={{ fontWeight: 'bold' }}>{profile.username}</Text>
+                            <Text variant="bodySmall" style={{ color: colors.secondary }}>
+                                {platformConfig?.name} • <Text style={{ fontWeight: '700', color: platformColor }}>{profile.rating || 'Unrated'}</Text>
+                            </Text>
+                        </View>
+                        <IconButton 
+                            icon="trash-can-outline" 
+                            size={20} 
+                            iconColor={colors.error}
+                            onPress={() => removeProfile(profile.id)} 
                         />
-                        {index < profiles.length - 1 && <Divider />}
-                    </React.Fragment>
-                ))
-             )}
-           </Card>
-        </List.Section>
+                     </View>
+                    );
+                 })
+              )}
+            </View>
+           </Surface>
+        </View>
 
         {/* Add Profile */}
         <List.Section>
            <List.Subheader>Add Profile</List.Subheader>
            <View style={styles.grid}>
-             {availablePlatforms.map(platform => (
+             {availablePlatforms.map(platform => {
+                 let platformColor = platform.color;
+                 if (platform.id === 'atcoder' && !isDarkMode) {
+                     platformColor = '#000000';
+                 }
+                 return (
                  <Card 
                     key={platform.id} 
-                    style={[styles.platformCard, { borderColor: platform.color }]} 
+                    style={[styles.platformCard, { borderColor: platformColor }]} 
                     onPress={() => openAddDialog(platform.id)} 
                     mode="outlined"
                  >
                      <Card.Content style={styles.platformCardContent}>
-                         <View style={[styles.iconBox, { backgroundColor: platform.color + '20' }]}>
-                            <MaterialCommunityIcons name={platform.icon as any || 'code-tags'} size={28} color={platform.color} />
+                         <View style={[styles.iconBox, { backgroundColor: platformColor + '20' }]}>
+                            <MaterialCommunityIcons name={platform.icon as any || 'code-tags'} size={20} color={platformColor} />
                          </View>
-                         <Text variant="titleMedium" style={{ marginTop: 12, fontWeight: 'bold' }}>{platform.name}</Text>
-                         <Text variant="bodySmall" style={{ color: colors.outline }}>Connect</Text>
+                         <Text variant="labelLarge" style={{ marginTop: 6, fontWeight: 'bold' }}>{platform.name}</Text>
+                         <Text variant="bodySmall" style={{ color: colors.outline, fontSize: 10 }}>Connect</Text>
                      </Card.Content>
                  </Card>
-             ))}
+             )})}
            </View>
         </List.Section>
 
@@ -205,12 +237,12 @@ const styles = StyleSheet.create({
   platformCardContent: {
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: 12
+      paddingVertical: 8
   },
   iconBox: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
       alignItems: 'center',
       justifyContent: 'center',
   },
@@ -218,5 +250,33 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       marginTop: 24,
       marginBottom: 20
-  }
+  },
+  sectionContainer: {
+      marginBottom: 24,
+  },
+  sectionTitle: {
+      fontWeight: '700',
+      marginBottom: 8,
+      marginLeft: 4,
+      textTransform: 'uppercase',
+      fontSize: 12,
+      letterSpacing: 1,
+      opacity: 0.6
+  },
+  settingsCard: {
+      borderRadius: 16,
+      overflow: 'hidden',
+  },
+  profileList: {
+      padding: 0
+  },
+  profileRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: 16,
+      borderBottomWidth: 0.5,
+      borderBottomColor: 'rgba(0,0,0,0.05)',
+      borderLeftWidth: 4,
+      backgroundColor: 'transparent'
+  },
 });

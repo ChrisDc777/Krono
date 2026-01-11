@@ -1,23 +1,27 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons'; // Added Icon
 import { useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
-import { Appbar, Text, useTheme } from 'react-native-paper';
+import { Linking, RefreshControl, ScrollView, StyleSheet, View } from 'react-native'; // Added Linking
+import { ActivityIndicator, Appbar, Surface, Text, useTheme } from 'react-native-paper'; // Added Surface, ActivityIndicator
 import { ContestList } from '../../src/components/contests/ContestList';
 import { ProfileCarousel } from '../../src/components/profile/ProfileCarousel';
 import { useContestStore } from '../../src/stores/useContestStore';
+import { usePotdStore } from '../../src/stores/usePotdStore'; // Added store
 import { useProfileStore } from '../../src/stores/useProfileStore';
 
 export default function DashboardScreen() {
   const router = useRouter();
   /* Use Paper's hook which returns our MD3 theme structure */
-  const { colors } = useTheme();
+  const { colors, dark } = useTheme();
 
   const { profiles, loadProfiles, refreshProfiles, isLoading: isProfileLoading } = useProfileStore();
   const { upcomingContests, loadContests, syncContests, isLoading: isContestLoading } = useContestStore();
+  const { leetcode, gfg, refreshPotd, isLoading: isPotdLoading } = usePotdStore(); // Destructure POTD
 
   useEffect(() => {
     loadProfiles();
     loadContests();
+    refreshPotd(); // Initial fetch
   }, []);
 
   const handleGoToSettings = () => {
@@ -27,10 +31,11 @@ export default function DashboardScreen() {
   const handleSync = async () => {
     // specific order: sync profiles first, then contests
     refreshProfiles(); 
+    refreshPotd(); // Sync POTD
     syncContests();
   };
 
-  const isLoading = isProfileLoading || isContestLoading;
+  const isLoading = isProfileLoading || isContestLoading || isPotdLoading;
 
   // Helper logic to find the very next contest
   const nextContest = upcomingContests.length > 0 ? upcomingContests[0] : null;
@@ -52,7 +57,7 @@ export default function DashboardScreen() {
       </Appbar.Header>
 
       <ScrollView 
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { paddingTop: 20 }]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl 
@@ -63,15 +68,7 @@ export default function DashboardScreen() {
           />
         }
       >
-        {/* Welcome / Header Section */}
-        <View style={styles.headerSection}>
-            <Text variant="displaySmall" style={{ fontWeight: '800', color: colors.onSurface, letterSpacing: -1 }}>
-                Hello, Coder! 👋
-            </Text>
-            <Text variant="titleMedium" style={{ color: colors.secondary, marginTop: 4, fontWeight: '500' }}>
-                You have {upcomingContests.length} battles ahead.
-            </Text>
-        </View>
+
 
         {/* Profiles Section */}
         {profiles.length > 0 && (
@@ -85,10 +82,75 @@ export default function DashboardScreen() {
           </View>
         )}
 
-        {/* Hero: Next Contest (Smaller/Compact) */}
+        {/* Problem of the Day Section */}
+        <View style={styles.sectionContainer}>
+           <View style={styles.sectionHeader}>
+              <Text variant="titleLarge" style={{ fontWeight: 'bold', color: colors.onSurface }}>Daily Challenge</Text>
+           </View>
+           <View style={styles.potdRow}>
+              {/* LeetCode Card */}
+              <Surface 
+                style={[
+                    styles.potdCard, 
+                    { 
+                        backgroundColor: colors.surface,
+                        borderColor: dark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.05)',
+                        borderWidth: 1
+                    }
+                ]} 
+                elevation={2}
+                onTouchEnd={() => leetcode?.url && Linking.openURL(leetcode.url)}
+              >
+                 <View style={[styles.potdHeader, { backgroundColor: '#FFA116' }]}>
+                    <MaterialCommunityIcons name="code-tags" size={16} color="white" />
+                    <Text variant="labelSmall" style={{ color: 'white', fontWeight: 'bold', marginLeft: 4 }}>LEETCODE</Text>
+                 </View>
+                 <View style={styles.potdContent}>
+                    {isPotdLoading && !leetcode ? (
+                        <ActivityIndicator size={16} color="#FFA116" />
+                    ) : (
+                        <>
+                           <Text variant="titleSmall" numberOfLines={2} style={{ fontWeight: 'bold' }}>{leetcode?.title || 'Loading...'}</Text>
+                           <Text variant="bodySmall" style={{ color: colors.secondary, marginTop: 4 }}>
+                                {leetcode?.difficulty || 'Easy'}
+                           </Text>
+                        </>
+                    )}
+                 </View>
+              </Surface>
 
-
-        {/* Other Contests List */}
+              {/* GFG Card */}
+              <Surface 
+                style={[
+                    styles.potdCard, 
+                    { 
+                        backgroundColor: colors.surface,
+                        borderColor: dark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.05)',
+                        borderWidth: 1
+                    }
+                ]} 
+                elevation={2}
+                onTouchEnd={() => gfg?.url && Linking.openURL(gfg.url)}
+              >
+                 <View style={[styles.potdHeader, { backgroundColor: '#2F8D46' }]}>
+                    <MaterialCommunityIcons name="xml" size={16} color="white" />
+                    <Text variant="labelSmall" style={{ color: 'white', fontWeight: 'bold', marginLeft: 4 }}>GFG</Text>
+                 </View>
+                 <View style={styles.potdContent}>
+                    {isPotdLoading && !gfg ? (
+                        <ActivityIndicator size={16} color="#2F8D46" />
+                    ) : (
+                        <>
+                           <Text variant="titleSmall" numberOfLines={2} style={{ fontWeight: 'bold' }}>{gfg?.title || 'Loading...'}</Text>
+                           <Text variant="bodySmall" style={{ color: colors.secondary, marginTop: 4 }}>
+                                {gfg?.difficulty || 'Unknown'}
+                           </Text>
+                        </>
+                    )}
+                 </View>
+              </Surface>
+           </View>
+        </View>
         <View style={styles.sectionContainer}>
           <View style={styles.sectionHeader}>
             <Text variant="titleLarge" style={{ fontWeight: 'bold', color: colors.onSurface }}>Upcoming</Text>
@@ -159,6 +221,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-
+  potdRow: {
+      flexDirection: 'row',
+      paddingHorizontal: 20,
+      gap: 12
+  },
+  potdCard: {
+      flex: 1,
+      borderRadius: 16,
+      overflow: 'hidden',
+      height: 110,
+  },
+  potdHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+  },
+  potdContent: {
+      padding: 12,
+      justifyContent: 'center',
+      flex: 1
+  }
 });
-

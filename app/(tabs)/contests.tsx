@@ -68,6 +68,7 @@ export default function ContestsScreen() {
   }, [upcomingContests, selectedPlatform]);
 
   const renderContestItem = ({ item }: { item: Contest }) => {
+     const startDate = new Date(item.startTime);
      const totalMinutes = Math.round(item.durationSeconds / 60);
      const hours = Math.floor(totalMinutes / 60);
      const minutes = totalMinutes % 60;
@@ -81,7 +82,16 @@ export default function ContestsScreen() {
      }
 
      return (
-          <Surface style={[styles.card, { backgroundColor: colors.surface }]} elevation={2}>
+          <Surface 
+            style={[
+                styles.card, 
+                { 
+                    backgroundColor: colors.surface,
+                    borderColor: isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.05)'
+                }
+            ]} 
+            elevation={2}
+          >
              {/* Left Tint Bar */}
              <View style={[styles.tintBar, { backgroundColor: platformColor }]} />
 
@@ -134,7 +144,7 @@ export default function ContestsScreen() {
       </Appbar.Header>
 
       {/* Chips Filter */}
-      <View style={{ backgroundColor: colors.surface, paddingBottom: 12 }}>
+      <View style={{ backgroundColor: colors.surface }}>
          <ScrollView 
             horizontal 
             showsHorizontalScrollIndicator={false} 
@@ -218,6 +228,8 @@ const styles = StyleSheet.create({
   },
   chipsContainer: {
     paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 16, // Extra padding for shadow
     gap: 8,
   },
   chip: {
@@ -237,6 +249,7 @@ const styles = StyleSheet.create({
       borderRadius: 12,
       overflow: 'hidden',
       position: 'relative',
+      borderWidth: 1, // Start border width
       // Shadow
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 1 },

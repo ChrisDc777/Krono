@@ -55,7 +55,18 @@ export const ContestList: React.FC<ContestListProps> = ({
         const durationText = hours > 0  ? (minutes > 0 ? `${hours}h ${minutes}m` : `${hours}h`) : `${minutes}m`;
 
         return (
-          <Surface key={contest.id} style={[styles.card, { backgroundColor: colors.surface }]} elevation={1} mode="flat">
+          <Surface 
+            key={contest.id} 
+            style={[
+                styles.card, 
+                { 
+                    backgroundColor: colors.surface,
+                    borderColor: isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.05)'
+                }
+            ]} 
+            elevation={1} 
+            mode="flat"
+          >
              {/* Left Tint Bar */}
              <View style={[styles.tintBar, { backgroundColor: platformColor }]} />
 

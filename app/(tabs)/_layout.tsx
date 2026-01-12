@@ -1,10 +1,10 @@
-import { Ionicons } from '@expo/vector-icons';
-import { Tabs } from 'expo-router';
-import { useTheme } from '../../src/hooks/useTheme';
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Tabs } from "expo-router";
+import { useTheme } from "../../src/hooks/useTheme";
 
 export default function TabLayout() {
   const { colors } = useTheme();
-  
+
   return (
     <Tabs
       screenOptions={{
@@ -14,27 +14,38 @@ export default function TabLayout() {
           borderTopColor: colors.border,
           height: 60,
           paddingBottom: 8,
-          paddingTop: 8
+          paddingTop: 8,
+          elevation: 4, // Add slight elevation for Android
         },
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.text.muted,
-        tabBarShowLabel: false, // Cleaner look
-      }}>
+        tabBarShowLabel: false,
+        tabBarHideOnKeyboard: true, // Hide when typing
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Dashboard',
+          title: "Dashboard",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" size={28} color={color} />
+            <MaterialCommunityIcons
+              name="view-dashboard-outline"
+              size={28}
+              color={color}
+            />
           ),
         }}
       />
       <Tabs.Screen
         name="contests"
         options={{
-          title: 'Contests',
+          title: "Contests",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="calendar" size={28} color={color} />
+            <MaterialCommunityIcons
+              name="trophy-variant-outline"
+              size={28}
+              color={color}
+            />
           ),
         }}
       />
@@ -42,10 +53,14 @@ export default function TabLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Settings',
-          href: null, // Hide from tab bar
+          title: "Settings",
+          href: null,
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="settings" size={28} color={color} />
+            <MaterialCommunityIcons
+              name="cog-outline"
+              size={28}
+              color={color}
+            />
           ),
         }}
       />

@@ -32,6 +32,7 @@ export const ContestList: React.FC<ContestListProps> = ({
   if (contests.length === 0) {
       return (
           <View style={styles.emptyContainer}>
+               <MaterialCommunityIcons name="calendar-remove" size={40} color={colors.onSurfaceVariant} style={{ opacity: 0.5, marginBottom: 8 }} />
                <Text variant="bodyMedium" style={{ color: colors.onSurfaceVariant }}>{emptyMessage}</Text>
           </View>
       );

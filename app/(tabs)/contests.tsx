@@ -211,7 +211,11 @@ export default function ContestsScreen() {
         ListEmptyComponent={
           !isLoading ? (
             <View style={styles.emptyContainer}>
-                <Text variant="bodyLarge" style={{ color: colors.onSurfaceVariant }}>No contests found.</Text>
+                <MaterialCommunityIcons name="trophy-broken" size={64} color={colors.onSurfaceVariant} style={{ opacity: 0.3, marginBottom: 16 }} />
+                <Text variant="titleMedium" style={{ color: colors.onSurfaceVariant, fontWeight: 'bold' }}>No contests found</Text>
+                <Text variant="bodyMedium" style={{ color: colors.outline, textAlign: 'center', marginTop: 4 }}>
+                    Try changing filters or sync to update.
+                </Text>
             </View>
           ) : (
             <ActivityIndicator style={{ marginTop: 20 }} color={colors.primary} />

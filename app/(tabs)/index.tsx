@@ -71,7 +71,7 @@ export default function DashboardScreen() {
 
 
         {/* Profiles Section */}
-        {profiles.length > 0 && (
+        {profiles.length > 0 ? (
           <View style={styles.sectionContainer}>
                <View style={styles.sectionHeader}>
                   <Text variant="titleLarge" style={{ fontWeight: 'bold', color: colors.onSurface }}>Profiles</Text>
@@ -80,6 +80,23 @@ export default function DashboardScreen() {
                   <ProfileCarousel profiles={profiles} />
               </View>
           </View>
+        ) : (
+             <View style={styles.sectionContainer}>
+                <Surface 
+                    style={[styles.emptyState, { backgroundColor: colors.surface }]}
+                    elevation={1}
+                    onTouchEnd={() => router.push('/settings')}
+                >
+                    <View style={[styles.emptyIconBox, { backgroundColor: colors.primary + '15' }]}>
+                         <MaterialCommunityIcons name="account-plus" size={24} color={colors.primary} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                        <Text variant="titleMedium" style={{ fontWeight: 'bold' }}>Connect Profiles</Text>
+                        <Text variant="bodySmall" style={{ color: colors.secondary }}>Sync stats from LeetCode, CodeForces...</Text>
+                    </View>
+                    <MaterialCommunityIcons name="chevron-right" size={24} color={colors.outline} />
+                </Surface>
+             </View>
         )}
 
         {/* Problem of the Day Section */}

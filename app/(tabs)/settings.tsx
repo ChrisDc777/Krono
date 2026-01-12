@@ -67,8 +67,8 @@ export default function SettingsScreen() {
       <ScrollView contentContainerStyle={styles.content}>
 
         {/* Appearance */}
-        <List.Section>
-           <List.Subheader>Appearance</List.Subheader>
+        <View style={styles.sectionContainer}>
+           <Text variant="titleMedium" style={styles.sectionTitle}>Appearance</Text>
            <Card style={styles.card} mode="elevated" elevation={1}>
              <List.Item
                 title="Dark Mode"
@@ -76,11 +76,11 @@ export default function SettingsScreen() {
                 right={() => <Switch value={isDarkMode} onValueChange={toggleTheme} />}
              />
            </Card>
-        </List.Section>
+        </View>
         
         {/* Notifications */}
-        <List.Section>
-           <List.Subheader>Notifications</List.Subheader>
+        <View style={styles.sectionContainer}>
+           <Text variant="titleMedium" style={styles.sectionTitle}>Notifications</Text>
            <Card style={styles.card} mode="elevated" elevation={1}>
              <List.Item
                 title="Enable Notifications"
@@ -100,11 +100,11 @@ export default function SettingsScreen() {
                 right={() => <Switch value={reminderIntervals.includes(60)} onValueChange={() => toggleInterval(60)} disabled={!notificationsEnabled} />}
              />
            </Card>
-        </List.Section>
+        </View>
 
         {/* Sync */}
-        <List.Section>
-           <List.Subheader>Sync</List.Subheader>
+        <View style={styles.sectionContainer}>
+           <Text variant="titleMedium" style={styles.sectionTitle}>Sync</Text>
            <Card style={styles.card} mode="elevated" elevation={1}>
              <List.Item
                 title="Background Sync"
@@ -113,7 +113,7 @@ export default function SettingsScreen() {
                 right={() => <Switch value={backgroundSyncEnabled} onValueChange={toggleBackgroundSync} />}
              />
            </Card>
-        </List.Section>
+        </View>
 
         {/* Connected Profiles */}
         <View style={styles.sectionContainer}>
@@ -155,8 +155,8 @@ export default function SettingsScreen() {
         </View>
 
         {/* Add Profile */}
-        <List.Section>
-           <List.Subheader>Add Profile</List.Subheader>
+        <View style={styles.sectionContainer}>
+           <Text variant="titleMedium" style={styles.sectionTitle}>Add Profile</Text>
            <View style={styles.grid}>
              {availablePlatforms.map(platform => {
                  let platformColor = platform.color;
@@ -180,7 +180,7 @@ export default function SettingsScreen() {
                  </Card>
              )})}
            </View>
-        </List.Section>
+        </View>
 
         <View style={styles.footer}>
              <Text variant="bodySmall" style={{ color: colors.outline }}>v1.0.0 • Krono</Text>

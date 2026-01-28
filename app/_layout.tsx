@@ -14,8 +14,11 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect } from 'react';
 import { PaperProvider } from 'react-native-paper';
+// ... (previous imports)
 import { registerBackgroundTask } from '../src/services/backgroundTask';
+import { notificationService } from '../src/services/notificationService';
 import { useThemeStore } from '../src/stores/useThemeStore';
+// ...
 import { theme as md3Theme } from '../src/theme/md3-theme';
 
 // ... (previous imports)
@@ -36,9 +39,16 @@ export default function RootLayout() {
     JetBrainsMono_700Bold,
   });
 
+
+
+// ...
+
   useEffect(() => {
     // Initialize background sync
     registerBackgroundTask();
+
+    // Request notification permissions on startup
+    notificationService.requestPermissions();
 
     if (fontsLoaded) {
       SplashScreen.hideAsync();

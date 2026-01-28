@@ -37,13 +37,10 @@ export default function DashboardScreen() {
 
   const isLoading = isProfileLoading || isContestLoading || isPotdLoading;
 
-  // Helper logic to find the very next contest
-  const nextContest = upcomingContests.length > 0 ? upcomingContests[0] : null;
-
-  // Filter other contests: upcoming (excluding first) within next 7 days
+  // Filter contests: upcoming within next 7 days
   const sevenDaysFromNow = Date.now() + 7 * 24 * 60 * 60 * 1000;
   const otherContests = upcomingContests.length > 0 
-    ? upcomingContests.slice(1).filter(c => {
+    ? upcomingContests.filter(c => {
         const t = c.startTime instanceof Date ? c.startTime.getTime() : new Date(c.startTime).getTime();
         return t <= sevenDaysFromNow;
     }) 

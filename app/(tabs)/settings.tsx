@@ -16,6 +16,7 @@ import {
     TextInput,
     useTheme
 } from 'react-native-paper';
+import { notificationService } from '../../src/services/notificationService';
 import { useProfileStore } from '../../src/stores/useProfileStore';
 import { useSettingsStore } from '../../src/stores/useSettingsStore';
 import { useThemeStore } from '../../src/stores/useThemeStore';
@@ -99,6 +100,16 @@ export default function SettingsScreen() {
                 left={props => <List.Icon {...props} icon="clock-time-one-outline" />}
                 right={() => <Switch value={reminderIntervals.includes(60)} onValueChange={() => toggleInterval(60)} disabled={!notificationsEnabled} />}
              />
+             <Divider />
+             <View style={{ padding: 16 }}>
+                <Button 
+                    mode="outlined" 
+                    icon="bell-ring" 
+                    onPress={() => notificationService.sendTestNotification()}
+                >
+                    Send Test Notification
+                </Button>
+             </View>
            </Card>
         </View>
 

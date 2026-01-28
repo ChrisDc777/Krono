@@ -1,9 +1,12 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
+import { Platform } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../../src/hooks/useTheme";
 
 export default function TabLayout() {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
@@ -12,15 +15,15 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopColor: colors.border,
-          height: 60,
-          paddingBottom: 8,
+          height: 60 + (Platform.OS === 'android' ? 0 : insets.bottom), // Android handles navbar differently often, but let's be safe
+          paddingBottom: 8 + (Platform.OS === 'android' ? 4 : insets.bottom), // Add extra padding for android nav bar
           paddingTop: 8,
-          elevation: 4, // Add slight elevation for Android
+          elevation: 4,
         },
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.text.muted,
         tabBarShowLabel: false,
-        tabBarHideOnKeyboard: true, // Hide when typing
+        tabBarHideOnKeyboard: true,
       }}
     >
       <Tabs.Screen

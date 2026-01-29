@@ -76,6 +76,7 @@ export const notificationService = {
   setupChannel: async () => {
     try {
       if (Platform.OS === "android") {
+        console.log("🔔 Setting up Android notification channel...");
         await Notifications.setNotificationChannelAsync("default", {
           name: "Default",
           importance: Notifications.AndroidImportance.HIGH,
@@ -83,9 +84,10 @@ export const notificationService = {
           vibrationPattern: [0, 250, 250, 250],
           lightColor: colors.primary,
         });
+        console.log("✅ Notification channel created successfully");
       }
     } catch (error) {
-      console.log("Failed to set notification channel:", error);
+      console.error("❌ Failed to set notification channel:", error);
     }
   },
 
@@ -134,7 +136,7 @@ export const notificationService = {
               data: { contestId: contest.id },
               color: colors.primary,
               channelId: "default", // Required for Android
-            },
+            } as any,
             trigger: {
               date: triggerDate,
               type: Notifications.SchedulableTriggerInputTypes.DATE,
@@ -166,29 +168,34 @@ export const notificationService = {
 
   sendTestNotification: async (): Promise<void> => {
     try {
+      console.log("🔔 Starting test notification...");
       const hasPermission = await notificationService.requestPermissions();
+      console.log("📋 Permission status:", hasPermission);
+
       if (!hasPermission) {
         alert("Permission not granted!");
         return;
       }
 
-      await Notifications.scheduleNotificationAsync({
+      console.log("📅 Scheduling notification...");
+      const notificationId = await Notifications.scheduleNotificationAsync({
         content: {
           title: "Test Notification 🔔",
           body: "This is a test notification from Krono. It works!",
           sound: "default",
           channelId: "default", // Required for Android
-        },
+        } as any,
         trigger: {
           seconds: 5,
           type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
           repeats: false,
         },
       });
+      console.log("✅ Notification scheduled with ID:", notificationId);
       alert("Notification scheduled for 5 seconds from now!");
     } catch (error) {
-      console.error("Test notification failed:", error);
-      alert("Failed to schedule test notification.");
+      console.error("❌ Test notification failed:", error);
+      alert(`Failed to schedule test notification: ${error}`);
     }
   },
 };

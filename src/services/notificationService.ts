@@ -93,8 +93,8 @@ export const notificationService = {
 
   scheduleAllReminders: async (contests: Contest[]): Promise<void> => {
     try {
-      const { notificationsEnabled, reminderIntervals } =
-        useSettingsStore.getState();
+      const { notificationsEnabled } = useSettingsStore.getState();
+      const reminderIntervals = [15];
 
       if (!notificationsEnabled) {
         // Ideally we should cancel all, but for now just don't schedule new ones.
@@ -151,11 +151,52 @@ export const notificationService = {
   },
 
   scheduleContestReminder: async (contest: Contest): Promise<string | null> => {
-    // Legacy wrapper or single use
-    // For now, let's just delegate to the batch one for consistency or keep basic logic
-    // But the prompt asked to update it. Let's make this use the store too?
-    // Actually, let's keep this as a direct override helper but generally use the batch one.
-    return null;
+    try {
+      const { notificationsEnabled } = useSettingsStore.getState();
+      const reminderIntervals = [15];
+
+      if (!notificationsEnabled) return null;
+
+      const hasPermission = await notificationService.requestPermissions();
+      if (!hasPermission) return null;
+
+      const startDate =
+        contest.startTime instanceof Date
+          ? contest.startTime
+          : new Date(contest.startTime);
+      if (isNaN(startDate.getTime())) return null;
+
+      const now = Date.now();
+      if (startDate.getTime() < now) return null;
+
+      for (const intervalMinutes of reminderIntervals) {
+        const triggerTime = startDate.getTime() - intervalMinutes * 60 * 1000;
+        const triggerDate = new Date(triggerTime);
+
+        if (triggerDate.getTime() <= now) continue;
+
+        const identifier = `${contest.id}-${intervalMinutes}`;
+
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: `Upcoming Contest: ${contest.name}`,
+            body: `Starts in ${intervalMinutes} minutes on ${contest.platformId}!`,
+            data: { contestId: contest.id },
+            color: colors.primary,
+            channelId: "default",
+          } as any,
+          trigger: {
+            date: triggerDate,
+            type: Notifications.SchedulableTriggerInputTypes.DATE,
+          } as any,
+          identifier,
+        });
+      }
+      return "scheduled";
+    } catch (error) {
+      console.warn("Failed to schedule contest reminder:", error);
+      return null;
+    }
   },
 
   cancelReminder: async (notificationId: string): Promise<void> => {
@@ -163,6 +204,18 @@ export const notificationService = {
       await Notifications.cancelScheduledNotificationAsync(notificationId);
     } catch (error) {
       console.warn("Failed to cancel notification:", error);
+    }
+  },
+
+  cancelContestReminders: async (contest: Contest): Promise<void> => {
+    try {
+      const reminderIntervals = [15];
+      for (const intervalMinutes of reminderIntervals) {
+        const identifier = `${contest.id}-${intervalMinutes}`;
+        await notificationService.cancelReminder(identifier);
+      }
+    } catch (error) {
+      console.warn("Failed to cancel contest reminders:", error);
     }
   },
 
@@ -182,7 +235,6 @@ export const notificationService = {
         content: {
           title: "Test Notification 🔔",
           body: "This is a test notification from Krono. It works!",
-          sound: "default",
           channelId: "default", // Required for Android
         } as any,
         trigger: {

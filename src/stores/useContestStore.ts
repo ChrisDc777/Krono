@@ -1,18 +1,27 @@
-import { create } from 'zustand';
-import { atcoderApi } from '../api/atcoder';
-import { codechefApi } from '../api/codechef';
-import { codeforcesApi } from '../api/codeforces';
-import { leetcodeApi } from '../api/leetcode';
-import { getUpcomingContests, saveContest, saveContests } from '../database/repositories/contestRepository';
-import { normalizeAtCoderContest, normalizeCodeChefContest, normalizeCodeforcesContest, normalizeLeetCodeContest } from '../services/dataNormalizer';
-import { Contest } from '../types/contest';
+import { create } from "zustand";
+import { atcoderApi } from "../api/atcoder";
+import { codechefApi } from "../api/codechef";
+import { codeforcesApi } from "../api/codeforces";
+import { leetcodeApi } from "../api/leetcode";
+import {
+    getUpcomingContests,
+    saveContest,
+    saveContests,
+} from "../database/repositories/contestRepository";
+import {
+    normalizeAtCoderContest,
+    normalizeCodeChefContest,
+    normalizeCodeforcesContest,
+    normalizeLeetCodeContest,
+} from "../services/dataNormalizer";
+import { Contest } from "../types/contest";
 
 interface ContestState {
   upcomingContests: Contest[];
   isLoading: boolean;
   error: string | null;
   lastSyncTime: Date | null;
-  
+
   // Actions
   loadContests: () => Promise<void>;
   syncContests: () => Promise<void>;
@@ -31,7 +40,7 @@ export const useContestStore = create<ContestState>((set, get) => ({
       const contests = await getUpcomingContests();
       set({ upcomingContests: contests, isLoading: false });
     } catch (error) {
-      set({ error: 'Failed to load contests', isLoading: false });
+      set({ error: "Failed to load contests", isLoading: false });
     }
   },
 
@@ -50,7 +59,7 @@ export const useContestStore = create<ContestState>((set, get) => ({
           lcContests = lcContestsRaw.map(normalizeLeetCodeContest);
         }
       } catch (lcError) {
-        console.warn('Failed to fetch LeetCode contests:', lcError);
+        console.warn("Failed to fetch LeetCode contests:", lcError);
         // Continue without LeetCode contests
       }
 
@@ -62,7 +71,7 @@ export const useContestStore = create<ContestState>((set, get) => ({
           ccContests = ccContestsRaw.map(normalizeCodeChefContest);
         }
       } catch (ccError) {
-        console.warn('Failed to fetch CodeChef contests:', ccError);
+        console.warn("Failed to fetch CodeChef contests:", ccError);
       }
 
       // 4. Fetch from AtCoder
@@ -73,58 +82,82 @@ export const useContestStore = create<ContestState>((set, get) => ({
           acContests = acContestsRaw.map(normalizeAtCoderContest);
         }
       } catch (acError) {
-        console.warn('Failed to fetch AtCoder contests:', acError);
+        console.warn("Failed to fetch AtCoder contests:", acError);
       }
 
       // 5. Combine and save to DB (local cache)
-      const allContests = [...cfContests, ...lcContests, ...ccContests, ...acContests];
+      const allContests = [
+        ...cfContests,
+        ...lcContests,
+        ...ccContests,
+        ...acContests,
+      ];
       await saveContests(allContests);
-      
+
       // 6. Reload from DB to get the sorted, filtered list
       const upcoming = await getUpcomingContests();
-      
-      set({ 
-        upcomingContests: upcoming, 
-        isLoading: false, 
-        lastSyncTime: new Date() 
+
+      set({
+        upcomingContests: upcoming,
+        isLoading: false,
+        lastSyncTime: new Date(),
       });
+
+      // 7. Schedule notifications for upcoming contests
+      try {
+        const { notificationService } =
+          await import("../services/notificationService");
+        await notificationService.scheduleAllReminders(upcoming);
+        console.log(
+          `✅ Scheduled notifications for ${upcoming.length} contests`,
+        );
+      } catch (e) {
+        console.warn("⚠️ Failed to schedule notifications:", e);
+      }
     } catch (error: any) {
-      console.error('Failed to sync contests:', error);
-      set({ 
-        error: error.message || 'Failed to sync contests', 
-        isLoading: false 
+      console.error("Failed to sync contests:", error);
+      set({
+        error: error.message || "Failed to sync contests",
+        isLoading: false,
       });
     }
   },
 
   toggleReminder: async (contestId: string, enable: boolean) => {
     const { upcomingContests } = get();
-    const contest = upcomingContests.find(c => c.id === contestId);
-    
+    const contest = upcomingContests.find((c) => c.id === contestId);
+
     if (contest) {
       let updatedContest = { ...contest };
 
       if (enable) {
         // Schedule - use dynamic import to avoid startup issues
         try {
-          const { notificationService } = await import('../services/notificationService');
+          const { notificationService } =
+            await import("../services/notificationService");
           await notificationService.scheduleContestReminder(contest);
         } catch (e) {
-          console.warn('Notifications not available');
+          console.warn("Notifications not available");
         }
         updatedContest.reminderSet = true;
       } else {
+        try {
+          const { notificationService } =
+            await import("../services/notificationService");
+          await notificationService.cancelContestReminders(contest);
+        } catch (e) {
+          console.warn("Notifications not available");
+        }
         updatedContest.reminderSet = false;
       }
 
       await saveContest(updatedContest);
-      
-      set(state => ({
-        upcomingContests: state.upcomingContests.map(c => 
-          c.id === contestId ? updatedContest : c
-        )
+
+      set((state) => ({
+        upcomingContests: state.upcomingContests.map((c) =>
+          c.id === contestId ? updatedContest : c,
+        ),
       }));
     }
-  }
+  },
 }));
-

@@ -188,6 +188,14 @@ export const ContestList: React.FC<ContestListProps> = ({
                     toggleReminder(contest.id, !contest.reminderSet)
                   }
                 />
+                {contest.url && (
+                  <MaterialCommunityIcons
+                    name="open-in-new"
+                    size={16}
+                    color={colors.outline}
+                    style={{ marginLeft: -4 }}
+                  />
+                )}
               </View>
             </Pressable>
           </Surface>

@@ -1,46 +1,59 @@
-import Constants, { ExecutionEnvironment } from "expo-constants";
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 import { useSettingsStore } from "../stores/useSettingsStore";
-import { colors } from "../theme/colors";
 import { Contest } from "../types/contest";
 
-try {
-  // Expo Go (StoreClient) doesn't support requestPermissionsAsync/push tokens well anymore
-  // But local notifications often still work if we don't ask for tokens.
-  const isExpoGo =
-    Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
-
-  if (!isExpoGo) {
-    Notifications.setNotificationHandler({
-      handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: true,
-        shouldSetBadge: false,
-        shouldShowBanner: true,
-        shouldShowList: true,
-      }),
-    });
-  } else {
-    // In Expo Go, be more lenient or just skip handler setup if it throws
-    Notifications.setNotificationHandler({
-      handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: false,
-        shouldSetBadge: false,
-        shouldShowBanner: true,
-        shouldShowList: true,
-      }),
-    });
-  }
-} catch (e) {
-  console.log(
-    "Notification handler setup skipped/failed (likely Expo Go restriction):",
-    e,
-  );
+// ---------------------------------------------------------------------------
+// Notification handler
+// Must be called once at app startup (from _layout.tsx), NOT at module scope,
+// because the native module may not be ready when this file is first imported.
+// ---------------------------------------------------------------------------
+export function setupNotificationHandler() {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
 }
 
+// ---------------------------------------------------------------------------
+// Reminder intervals (minutes before contest start)
+// ---------------------------------------------------------------------------
+const REMINDER_INTERVALS_MINUTES = [60, 15];
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Build a deterministic notification identifier for a contest + interval. */
+function buildIdentifier(contestId: string, minutesBefore: number): string {
+  return `krono-${contestId}-${minutesBefore}`;
+}
+
+/** Cancel every scheduled notification that Krono owns for a specific contest. */
+async function cancelContestNotifications(contestId: string): Promise<void> {
+  for (const minutes of REMINDER_INTERVALS_MINUTES) {
+    try {
+      await Notifications.cancelScheduledNotificationAsync(
+        buildIdentifier(contestId, minutes),
+      );
+    } catch {
+      // Ignore — identifier may not exist
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Exported service
+// ---------------------------------------------------------------------------
 export const notificationService = {
+  // -------------------------------------------------------------------------
+  // Permissions & channel setup
+  // -------------------------------------------------------------------------
   requestPermissions: async (): Promise<boolean> => {
     try {
       const { status: existingStatus } =
@@ -58,195 +71,273 @@ export const notificationService = {
         finalStatus = status;
       }
 
-      if (finalStatus === "granted") {
-        // Required for Android 8.0+
-        await notificationService.setupChannel();
+      if (finalStatus === "granted" && Platform.OS === "android") {
+        await notificationService.setupAndroidChannel();
       }
 
       return finalStatus === "granted";
     } catch (error) {
-      console.log(
-        "Notification permissions check failed (possibly Expo Go restriction):",
-        error,
-      );
+      console.warn("[Notifications] requestPermissions failed:", error);
       return false;
     }
   },
 
-  setupChannel: async () => {
+  setupAndroidChannel: async (): Promise<void> => {
     try {
-      if (Platform.OS === "android") {
-        console.log("🔔 Setting up Android notification channel...");
-        await Notifications.setNotificationChannelAsync("default", {
-          name: "Default",
-          importance: Notifications.AndroidImportance.HIGH,
-          sound: "default",
-          vibrationPattern: [0, 250, 250, 250],
-          lightColor: colors.primary,
-        });
-        console.log("✅ Notification channel created successfully");
-      }
+      await Notifications.setNotificationChannelAsync("default", {
+        name: "Contest Reminders",
+        description:
+          "Reminders before upcoming competitive programming contests",
+        importance: Notifications.AndroidImportance.HIGH,
+        sound: "default",
+        vibrationPattern: [0, 250, 250, 250],
+        enableVibrate: true,
+        showBadge: true,
+      });
     } catch (error) {
-      console.error("❌ Failed to set notification channel:", error);
+      console.warn("[Notifications] setupAndroidChannel failed:", error);
     }
   },
 
+  // -------------------------------------------------------------------------
+  // Cancel all Krono-scheduled notifications
+  // -------------------------------------------------------------------------
+  cancelAll: async (): Promise<void> => {
+    try {
+      const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+      const kronoIds = scheduled
+        .filter((n) => n.identifier.startsWith("krono-"))
+        .map((n) => n.identifier);
+
+      await Promise.all(
+        kronoIds.map((id) =>
+          Notifications.cancelScheduledNotificationAsync(id).catch(() => {}),
+        ),
+      );
+    } catch (error) {
+      console.warn("[Notifications] cancelAll failed:", error);
+    }
+  },
+
+  // -------------------------------------------------------------------------
+  // Cancel reminders for a single contest
+  // -------------------------------------------------------------------------
+  cancelContestReminders: async (contest: Contest): Promise<void> => {
+    try {
+      await cancelContestNotifications(contest.id);
+    } catch (error) {
+      console.warn("[Notifications] cancelContestReminders failed:", error);
+    }
+  },
+
+  // -------------------------------------------------------------------------
+  // Schedule reminders for a single contest (bell-icon toggle)
+  // -------------------------------------------------------------------------
+  scheduleContestReminder: async (contest: Contest): Promise<boolean> => {
+    try {
+      // Always cancel first so we never double-schedule
+      await cancelContestNotifications(contest.id);
+
+      const { notificationsEnabled } = useSettingsStore.getState();
+      if (!notificationsEnabled) return false;
+
+      const hasPermission = await notificationService.requestPermissions();
+      if (!hasPermission) return false;
+
+      const startDate =
+        contest.startTime instanceof Date
+          ? contest.startTime
+          : new Date(contest.startTime);
+
+      if (isNaN(startDate.getTime())) return false;
+
+      const now = Date.now();
+      if (startDate.getTime() <= now) return false;
+
+      let scheduled = false;
+
+      for (const minutes of REMINDER_INTERVALS_MINUTES) {
+        const triggerMs = startDate.getTime() - minutes * 60 * 1000;
+        if (triggerMs <= now) continue; // Already past
+
+        const identifier = buildIdentifier(contest.id, minutes);
+        const secondsFromNow = Math.max(
+          1,
+          Math.round((triggerMs - now) / 1000),
+        );
+
+        await Notifications.scheduleNotificationAsync({
+          identifier,
+          content: {
+            title: `🏆 ${contest.name}`,
+            body: `Starts in ${minutes} minute${minutes !== 1 ? "s" : ""}! Open Krono to join.`,
+            data: {
+              contestId: contest.id,
+              platformId: contest.platformId,
+            },
+            sound: "default",
+            ...(Platform.OS === "android" && {
+              channelId: "default",
+            }),
+          },
+          trigger: {
+            type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+            seconds: secondsFromNow,
+            repeats: false,
+          },
+        });
+
+        console.log(
+          `[Notifications] Scheduled "${contest.name}" reminder: ${minutes}min before (in ${secondsFromNow}s)`,
+        );
+        scheduled = true;
+      }
+
+      return scheduled;
+    } catch (error) {
+      console.warn("[Notifications] scheduleContestReminder failed:", error);
+      return false;
+    }
+  },
+
+  // -------------------------------------------------------------------------
+  // Bulk-schedule reminders for all upcoming contests (called after sync)
+  // -------------------------------------------------------------------------
   scheduleAllReminders: async (contests: Contest[]): Promise<void> => {
     try {
       const { notificationsEnabled } = useSettingsStore.getState();
-      const reminderIntervals = [15];
 
+      console.log(
+        `[Notifications] scheduleAllReminders called. enabled=${notificationsEnabled}, contests=${contests.length}`,
+      );
+
+      // If notifications are disabled, wipe everything and bail
       if (!notificationsEnabled) {
-        // Ideally we should cancel all, but for now just don't schedule new ones.
-        // In a real app we might want to clearAllScheduledNotifications() here if switched off.
+        await notificationService.cancelAll();
         return;
       }
 
       const hasPermission = await notificationService.requestPermissions();
-      if (!hasPermission) return;
+      if (!hasPermission) {
+        console.warn("[Notifications] Permission not granted — skipping.");
+        return;
+      }
 
-      // Cancel all existing to avoid dupes (simple strategy) or we could just add new ones.
-      // For simplicity/robustness, let's just schedule upcoming ones.
-      // Expo handles dupes if we use the same ID, but generating deterministic IDs is key.
+      // Cancel all existing Krono notifications before rescheduling.
+      // This prevents stale notifications for contests that were removed / rescheduled.
+      await notificationService.cancelAll();
 
       const now = Date.now();
+      let scheduledCount = 0;
+      let skippedCount = 0;
 
       for (const contest of contests) {
         const startDate =
           contest.startTime instanceof Date
             ? contest.startTime
             : new Date(contest.startTime);
-        if (isNaN(startDate.getTime())) continue;
 
-        // Don't schedule for past contests
-        if (startDate.getTime() < now) continue;
+        if (isNaN(startDate.getTime())) {
+          console.warn(
+            `[Notifications] Skipping "${contest.name}" — invalid startTime: ${contest.startTime}`,
+          );
+          skippedCount++;
+          continue;
+        }
+        if (startDate.getTime() <= now) {
+          skippedCount++;
+          continue; // Past contest
+        }
 
-        for (const intervalMinutes of reminderIntervals) {
-          const triggerTime = startDate.getTime() - intervalMinutes * 60 * 1000;
-          const triggerDate = new Date(triggerTime);
+        for (const minutes of REMINDER_INTERVALS_MINUTES) {
+          const triggerMs = startDate.getTime() - minutes * 60 * 1000;
+          if (triggerMs <= now) {
+            skippedCount++;
+            continue; // Reminder window already passed
+          }
 
-          if (triggerDate.getTime() <= now) continue; // Reminder time passed
+          const identifier = buildIdentifier(contest.id, minutes);
+          const secondsFromNow = Math.max(
+            1,
+            Math.round((triggerMs - now) / 1000),
+          );
 
-          const identifier = `${contest.id}-${intervalMinutes}`;
+          try {
+            // Use TIME_INTERVAL instead of DATE.
+            // DATE triggers can silently fail in some Expo Go / SDK combos,
+            // while TIME_INTERVAL is more broadly supported.
+            await Notifications.scheduleNotificationAsync({
+              identifier,
+              content: {
+                title: `🏆 ${contest.name}`,
+                body: `Starts in ${minutes} minute${minutes !== 1 ? "s" : ""}! Open Krono to join.`,
+                data: {
+                  contestId: contest.id,
+                  platformId: contest.platformId,
+                },
+                sound: "default",
+                ...(Platform.OS === "android" && {
+                  channelId: "default",
+                }),
+              },
+              trigger: {
+                type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+                seconds: secondsFromNow,
+                repeats: false,
+              },
+            });
 
-          await Notifications.scheduleNotificationAsync({
-            content: {
-              title: `Upcoming Contest: ${contest.name}`,
-              body: `Starts in ${intervalMinutes} minutes on ${contest.platformId}!`,
-              data: { contestId: contest.id },
-              color: colors.primary,
-              channelId: "default", // Required for Android
-            } as any,
-            trigger: {
-              date: triggerDate,
-              type: Notifications.SchedulableTriggerInputTypes.DATE,
-            } as any,
-            identifier,
-          });
+            scheduledCount++;
+          } catch (e) {
+            // One failure must not abort the rest
+            console.warn(
+              `[Notifications] Failed to schedule ${identifier} (in ${secondsFromNow}s):`,
+              e,
+            );
+          }
         }
       }
+
+      console.log(
+        `[Notifications] Done. Scheduled=${scheduledCount}, Skipped=${skippedCount}`,
+      );
     } catch (error) {
-      console.warn("Failed to schedule batch notifications:", error);
+      console.warn("[Notifications] scheduleAllReminders failed:", error);
     }
   },
 
-  scheduleContestReminder: async (contest: Contest): Promise<string | null> => {
-    try {
-      const { notificationsEnabled } = useSettingsStore.getState();
-      const reminderIntervals = [15];
-
-      if (!notificationsEnabled) return null;
-
-      const hasPermission = await notificationService.requestPermissions();
-      if (!hasPermission) return null;
-
-      const startDate =
-        contest.startTime instanceof Date
-          ? contest.startTime
-          : new Date(contest.startTime);
-      if (isNaN(startDate.getTime())) return null;
-
-      const now = Date.now();
-      if (startDate.getTime() < now) return null;
-
-      for (const intervalMinutes of reminderIntervals) {
-        const triggerTime = startDate.getTime() - intervalMinutes * 60 * 1000;
-        const triggerDate = new Date(triggerTime);
-
-        if (triggerDate.getTime() <= now) continue;
-
-        const identifier = `${contest.id}-${intervalMinutes}`;
-
-        await Notifications.scheduleNotificationAsync({
-          content: {
-            title: `Upcoming Contest: ${contest.name}`,
-            body: `Starts in ${intervalMinutes} minutes on ${contest.platformId}!`,
-            data: { contestId: contest.id },
-            color: colors.primary,
-            channelId: "default",
-          } as any,
-          trigger: {
-            date: triggerDate,
-            type: Notifications.SchedulableTriggerInputTypes.DATE,
-          } as any,
-          identifier,
-        });
-      }
-      return "scheduled";
-    } catch (error) {
-      console.warn("Failed to schedule contest reminder:", error);
-      return null;
-    }
-  },
-
-  cancelReminder: async (notificationId: string): Promise<void> => {
-    try {
-      await Notifications.cancelScheduledNotificationAsync(notificationId);
-    } catch (error) {
-      console.warn("Failed to cancel notification:", error);
-    }
-  },
-
-  cancelContestReminders: async (contest: Contest): Promise<void> => {
-    try {
-      const reminderIntervals = [15];
-      for (const intervalMinutes of reminderIntervals) {
-        const identifier = `${contest.id}-${intervalMinutes}`;
-        await notificationService.cancelReminder(identifier);
-      }
-    } catch (error) {
-      console.warn("Failed to cancel contest reminders:", error);
-    }
-  },
-
+  // -------------------------------------------------------------------------
+  // Test notification (fires 5 seconds from now)
+  // -------------------------------------------------------------------------
   sendTestNotification: async (): Promise<void> => {
     try {
-      console.log("🔔 Starting test notification...");
       const hasPermission = await notificationService.requestPermissions();
-      console.log("📋 Permission status:", hasPermission);
 
       if (!hasPermission) {
-        alert("Permission not granted!");
+        alert(
+          "Notification permission not granted. Please enable it in your device settings.",
+        );
         return;
       }
 
-      console.log("📅 Scheduling notification...");
-      const notificationId = await Notifications.scheduleNotificationAsync({
+      await Notifications.scheduleNotificationAsync({
+        identifier: "krono-test",
         content: {
-          title: "Test Notification 🔔",
-          body: "This is a test notification from Krono. It works!",
-          channelId: "default", // Required for Android
-        } as any,
+          title: "Krono Test 🔔",
+          body: "Notifications are working correctly!",
+          sound: "default",
+          ...(Platform.OS === "android" && { channelId: "default" }),
+        },
         trigger: {
-          seconds: 5,
           type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+          seconds: 5,
           repeats: false,
         },
       });
-      console.log("✅ Notification scheduled with ID:", notificationId);
-      alert("Notification scheduled for 5 seconds from now!");
+
+      alert("Test notification scheduled — it will appear in 5 seconds.");
     } catch (error) {
-      console.error("❌ Test notification failed:", error);
+      console.error("[Notifications] sendTestNotification failed:", error);
       alert(`Failed to schedule test notification: ${error}`);
     }
   },

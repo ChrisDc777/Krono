@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Surface, Text, useTheme } from "react-native-paper";
+import { clistApi } from "../../api/clist";
 import { codeforcesApi } from "../../api/codeforces";
 import { UnifiedProfile } from "../../types/user";
 import { Skeleton } from "../common/SkeletonLoader";
@@ -18,7 +19,8 @@ interface ActivityHeatmapProps {
 
 /**
  * GitHub-style activity heatmap showing daily problem-solving activity.
- * Currently uses Codeforces submissions as the data source.
+ * Uses Codeforces submissions API for CF profiles,
+ * and clist.by statistics (contest dates) for all other platforms.
  */
 export function ActivityHeatmap({ profiles }: ActivityHeatmapProps) {
   const { colors, dark } = useTheme();
@@ -33,22 +35,50 @@ export function ActivityHeatmap({ profiles }: ActivityHeatmapProps) {
     for (const profile of profiles) {
       try {
         if (profile.platformId === "codeforces") {
+          // CF has per-submission data
           const subs = await codeforcesApi.getUserSubmissions(
             profile.username,
             10000,
           );
           if (Array.isArray(subs)) {
-            // Only count accepted (verdict === "OK") submissions
             const accepted = subs.filter((s: any) => s.verdict === "OK");
-            // Group by date
             for (const sub of accepted) {
               const date = new Date(sub.creationTimeSeconds * 1000);
               const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
               map[key] = (map[key] || 0) + 1;
             }
           }
+        } else {
+          // For LC, AC, CC — use clist.by statistics to get contest participation dates
+          const account = await clistApi.getAccountInfo(
+            profile.platformId,
+            profile.username,
+          );
+          if (account) {
+            const axios = require("axios");
+            const resp = await axios.get(
+              "https://clist.by/api/v4/json/statistics/",
+              {
+                params: {
+                  username: "Voidy",
+                  api_key: "4f2926cfec3bf8b26b3694f7b5d921bd1217598e",
+                  account_id: account.id,
+                  order_by: "-date",
+                  limit: 200,
+                },
+              },
+            );
+            if (Array.isArray(resp.data?.objects)) {
+              for (const stat of resp.data.objects) {
+                if (stat.date) {
+                  const date = new Date(stat.date);
+                  const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+                  map[key] = (map[key] || 0) + 1;
+                }
+              }
+            }
+          }
         }
-        // Other platforms don't expose per-submission timestamps easily
       } catch (e) {
         console.warn(`[ActivityHeatmap] Failed for ${profile.platformId}:`, e);
       }
@@ -60,15 +90,10 @@ export function ActivityHeatmap({ profiles }: ActivityHeatmapProps) {
   }, [profiles]);
 
   useEffect(() => {
-    const hasCF = profiles.some((p) => p.platformId === "codeforces");
-    if (hasCF) {
+    if (profiles.length > 0) {
       fetchActivity();
     }
   }, [profiles.length]);
-
-  // Don't render if no CF profile
-  const hasCF = profiles.some((p) => p.platformId === "codeforces");
-  if (!hasCF) return null;
 
   if (isLoading) {
     return (
@@ -82,23 +107,22 @@ export function ActivityHeatmap({ profiles }: ActivityHeatmapProps) {
     );
   }
 
+  // Don't render if no data
+  if (Object.keys(activityMap).length === 0 && totalCount === 0) return null;
+
   // Build grid: last WEEKS weeks ending today
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Find the start of the grid (WEEKS ago, aligned to Monday)
   const startDate = new Date(today);
   startDate.setDate(startDate.getDate() - (WEEKS * 7 - 1));
-  // Align to Monday
-  const dayOfWeek = startDate.getDay(); // 0=Sun
+  const dayOfWeek = startDate.getDay();
   const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
   startDate.setDate(startDate.getDate() + mondayOffset);
 
-  // Find max for color scaling
   const values = Object.values(activityMap);
   const maxCount = values.length > 0 ? Math.max(...values) : 1;
 
-  // Generate weeks
   const weeks: { key: string; count: number }[][] = [];
   const cursor = new Date(startDate);
 
@@ -107,14 +131,17 @@ export function ActivityHeatmap({ profiles }: ActivityHeatmapProps) {
     for (let d = 0; d < DAYS_PER_WEEK; d++) {
       const key = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}-${String(cursor.getDate()).padStart(2, "0")}`;
       const isFuture = cursor.getTime() > today.getTime();
-      week.push({ key, count: isFuture ? -1 : activityMap[key] || 0 });
+      week.push({
+        key,
+        count: isFuture ? -1 : activityMap[key] || 0,
+      });
       cursor.setDate(cursor.getDate() + 1);
     }
     weeks.push(week);
   }
 
   const getColor = (count: number): string => {
-    if (count < 0) return "transparent"; // future
+    if (count < 0) return "transparent";
     if (count === 0)
       return dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)";
     const intensity = Math.min(count / maxCount, 1);
@@ -124,7 +151,6 @@ export function ActivityHeatmap({ profiles }: ActivityHeatmapProps) {
     return dark ? "#39d353" : "#216e39";
   };
 
-  // Count for last 90 days
   const ninetyDaysAgo = new Date(today);
   ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
   let recentCount = 0;
@@ -140,17 +166,17 @@ export function ActivityHeatmap({ profiles }: ActivityHeatmapProps) {
           styles.card,
           {
             backgroundColor: colors.surface,
-            borderColor: dark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)",
+            borderColor: dark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)",
           },
         ]}
-        elevation={1}
+        elevation={0}
       >
         <View style={styles.header}>
           <Text variant="labelMedium" style={{ fontWeight: "700" }}>
             Activity
           </Text>
           <Text variant="labelSmall" style={{ color: colors.outline }}>
-            {recentCount} submissions (90d)
+            {recentCount} activities (90d)
           </Text>
         </View>
 
@@ -178,7 +204,7 @@ export function ActivityHeatmap({ profiles }: ActivityHeatmapProps) {
           <View style={styles.grid}>
             {weeks.map((week, wi) => (
               <View key={wi} style={styles.weekColumn}>
-                {week.map((day, di) => (
+                {week.map((day) => (
                   <View
                     key={day.key}
                     style={[
@@ -200,7 +226,10 @@ export function ActivityHeatmap({ profiles }: ActivityHeatmapProps) {
         <View style={styles.legend}>
           <Text
             variant="labelSmall"
-            style={{ color: colors.outline, marginRight: 4 }}
+            style={{
+              color: colors.outline,
+              marginRight: 4,
+            }}
           >
             Less
           </Text>
@@ -217,7 +246,10 @@ export function ActivityHeatmap({ profiles }: ActivityHeatmapProps) {
           ))}
           <Text
             variant="labelSmall"
-            style={{ color: colors.outline, marginLeft: 4 }}
+            style={{
+              color: colors.outline,
+              marginLeft: 4,
+            }}
           >
             More
           </Text>
@@ -229,7 +261,7 @@ export function ActivityHeatmap({ profiles }: ActivityHeatmapProps) {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
   },
   card: {
     borderRadius: 16,

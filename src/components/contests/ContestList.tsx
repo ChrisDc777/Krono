@@ -188,14 +188,6 @@ export const ContestList: React.FC<ContestListProps> = ({
                     toggleReminder(contest.id, !contest.reminderSet)
                   }
                 />
-                {contest.url && (
-                  <MaterialCommunityIcons
-                    name="open-in-new"
-                    size={16}
-                    color={colors.outline}
-                    style={{ marginLeft: -4 }}
-                  />
-                )}
               </View>
             </Pressable>
           </Surface>
@@ -207,8 +199,8 @@ export const ContestList: React.FC<ContestListProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    gap: 16,
-    paddingHorizontal: 20,
+    gap: 12,
+    paddingHorizontal: 24,
   },
   card: {
     borderRadius: 16,
@@ -222,10 +214,10 @@ const styles = StyleSheet.create({
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 4, // Higher elevation for android
-    marginBottom: 2,
+    shadowOpacity: 0.06,
+    shadowRadius: 3,
+    elevation: 1,
+    marginBottom: 0,
   },
   tintBar: {
     position: "absolute",

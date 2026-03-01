@@ -1,4 +1,4 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons"; // Added Icon
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useEffect } from "react";
 import {
@@ -7,10 +7,8 @@ import {
     ScrollView,
     StyleSheet,
     View,
-} from "react-native"; // Added Linking
-import { Appbar, Surface, Text, useTheme } from "react-native-paper"; // Added Surface, ActivityIndicator
-import { ActivityHeatmap } from "../../src/components/charts/ActivityHeatmap";
-import { RatingChart } from "../../src/components/charts/RatingChart";
+} from "react-native";
+import { Appbar, Surface, Text, useTheme } from "react-native-paper";
 import { ErrorBoundary } from "../../src/components/common/ErrorBoundary";
 import {
     DashboardSkeleton,
@@ -19,22 +17,29 @@ import {
 import { ContestList } from "../../src/components/contests/ContestList";
 import { ProfileCarousel } from "../../src/components/profile/ProfileCarousel";
 import { useContestStore } from "../../src/stores/useContestStore";
-import { usePotdStore } from "../../src/stores/usePotdStore"; // Added store
+import { usePotdStore } from "../../src/stores/usePotdStore";
 import { useProfileStore } from "../../src/stores/useProfileStore";
 
-// Difficulty → color mapping for POTD badges
+// Difficulty → color mapping
 const getDifficultyColor = (difficulty?: string): string => {
   const d = (difficulty || "").toLowerCase();
   if (d.includes("easy") || d.includes("basic") || d.includes("school"))
     return "#22C55E";
   if (d.includes("medium") || d.includes("intermediate")) return "#F59E0B";
   if (d.includes("hard") || d.includes("advanced")) return "#EF4444";
-  return "#71717A"; // default gray
+  return "#71717A";
+};
+
+// Time-based greeting
+const getGreeting = (): string => {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  return "Good evening";
 };
 
 export default function DashboardScreen() {
   const router = useRouter();
-  /* Use Paper's hook which returns our MD3 theme structure */
   const { colors, dark } = useTheme();
 
   const {
@@ -49,33 +54,22 @@ export default function DashboardScreen() {
     syncContests,
     isLoading: isContestLoading,
   } = useContestStore();
-  const {
-    leetcode,
-    gfg,
-    refreshPotd,
-    isLoading: isPotdLoading,
-  } = usePotdStore(); // Destructure POTD
+  const { leetcode, refreshPotd, isLoading: isPotdLoading } = usePotdStore();
 
   useEffect(() => {
     loadProfiles();
     loadContests();
-    refreshPotd(); // Initial fetch
+    refreshPotd();
   }, []);
 
-  const handleGoToSettings = () => {
-    router.push("/settings");
-  };
-
   const handleSync = async () => {
-    // specific order: sync profiles first, then contests
     refreshProfiles();
-    refreshPotd(); // Sync POTD
+    refreshPotd();
     syncContests();
   };
 
   const isLoading = isProfileLoading || isContestLoading || isPotdLoading;
 
-  // Filter contests: upcoming within next 7 days
   const sevenDaysFromNow = Date.now() + 7 * 24 * 60 * 60 * 1000;
   const otherContests =
     upcomingContests.length > 0
@@ -92,14 +86,12 @@ export default function DashboardScreen() {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <Appbar.Header
-          elevated
-          mode="center-aligned"
-          style={{ backgroundColor: colors.surface }}
+          style={{
+            backgroundColor: colors.background,
+            elevation: 0,
+          }}
         >
-          <Appbar.Content
-            title="Dashboard"
-            titleStyle={{ fontWeight: "bold" }}
-          />
+          <Appbar.Content title="" />
           <Appbar.Action
             icon="cog-outline"
             onPress={() => router.push("/settings")}
@@ -113,15 +105,14 @@ export default function DashboardScreen() {
   return (
     <ErrorBoundary fallbackTitle="Dashboard Error">
       <View style={[styles.container, { backgroundColor: colors.background }]}>
+        {/* Transparent header — only settings icon */}
         <Appbar.Header
-          elevated
-          mode="center-aligned"
-          style={{ backgroundColor: colors.surface }}
+          style={{
+            backgroundColor: colors.background,
+            elevation: 0,
+          }}
         >
-          <Appbar.Content
-            title="Dashboard"
-            titleStyle={{ fontWeight: "bold" }}
-          />
+          <Appbar.Content title="" />
           <Appbar.Action
             icon="cog-outline"
             onPress={() => router.push("/settings")}
@@ -129,7 +120,7 @@ export default function DashboardScreen() {
         </Appbar.Header>
 
         <ScrollView
-          contentContainerStyle={[styles.content, { paddingTop: 20 }]}
+          contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
@@ -140,261 +131,171 @@ export default function DashboardScreen() {
             />
           }
         >
-          {/* Profiles Section */}
+          {/* Greeting */}
+          <View style={styles.greeting}>
+            <Text
+              variant="headlineMedium"
+              style={{
+                fontWeight: "800",
+                color: colors.onSurface,
+                letterSpacing: -0.5,
+              }}
+            >
+              {getGreeting()} 👋
+            </Text>
+            <Text
+              variant="bodyMedium"
+              style={{
+                color: colors.onSurfaceVariant,
+                marginTop: 4,
+              }}
+            >
+              Here's your coding snapshot
+            </Text>
+          </View>
+
+          {/* Profiles — tap a card to see detailed stats */}
           {profiles.length > 0 ? (
-            <View style={styles.sectionContainer}>
-              <View style={styles.sectionHeader}>
-                <MaterialCommunityIcons
-                  name="account-group"
-                  size={20}
-                  color={colors.onSurface}
-                  style={{ marginRight: 8 }}
-                />
-                <Text
-                  variant="titleLarge"
-                  style={{ fontWeight: "bold", color: colors.onSurface }}
-                >
-                  Profiles
-                </Text>
-              </View>
-              <View style={styles.profilesWrapper}>
-                <ProfileCarousel profiles={profiles} />
-              </View>
+            <View style={styles.section}>
+              <Text
+                variant="labelMedium"
+                style={[styles.label, { color: colors.onSurfaceVariant }]}
+              >
+                YOUR PROFILES
+              </Text>
+              <ProfileCarousel profiles={profiles} />
             </View>
           ) : (
-            <View style={styles.sectionContainer}>
+            <View style={styles.section}>
               <Surface
-                style={[styles.emptyState, { backgroundColor: colors.surface }]}
-                elevation={1}
+                style={[
+                  styles.connectCard,
+                  {
+                    backgroundColor: colors.surface,
+                    borderColor: dark
+                      ? "rgba(255,255,255,0.08)"
+                      : "rgba(0,0,0,0.06)",
+                  },
+                ]}
+                elevation={0}
                 onTouchEnd={() => router.push("/settings")}
               >
                 <View
                   style={[
-                    styles.emptyIconBox,
-                    { backgroundColor: colors.primary + "15" },
+                    styles.connectIcon,
+                    {
+                      backgroundColor: colors.primary + "12",
+                    },
                   ]}
                 >
                   <MaterialCommunityIcons
-                    name="account-plus"
-                    size={24}
+                    name="account-plus-outline"
+                    size={22}
                     color={colors.primary}
                   />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text variant="titleMedium" style={{ fontWeight: "bold" }}>
-                    Connect Profiles
+                  <Text variant="titleSmall" style={{ fontWeight: "700" }}>
+                    Connect a Profile
                   </Text>
-                  <Text variant="bodySmall" style={{ color: colors.secondary }}>
-                    Sync stats from LeetCode, CodeForces...
+                  <Text
+                    variant="bodySmall"
+                    style={{
+                      color: colors.onSurfaceVariant,
+                      marginTop: 2,
+                    }}
+                  >
+                    LeetCode, Codeforces, CodeChef...
                   </Text>
                 </View>
                 <MaterialCommunityIcons
                   name="chevron-right"
-                  size={24}
+                  size={20}
                   color={colors.outline}
                 />
               </Surface>
             </View>
           )}
 
-          {/* Rating History */}
-          {profiles.length > 0 && (
-            <View style={styles.sectionContainer}>
-              <View style={styles.sectionHeader}>
-                <MaterialCommunityIcons
-                  name="chart-line"
-                  size={20}
-                  color={colors.onSurface}
-                  style={{ marginRight: 8 }}
-                />
-                <Text
-                  variant="titleLarge"
-                  style={{ fontWeight: "bold", color: colors.onSurface }}
-                >
-                  Rating History
-                </Text>
-              </View>
-              <RatingChart profiles={profiles} />
-            </View>
-          )}
-
-          {/* Activity Heatmap */}
-          {profiles.length > 0 && (
-            <View style={styles.sectionContainer}>
-              <View style={styles.sectionHeader}>
-                <MaterialCommunityIcons
-                  name="fire"
-                  size={20}
-                  color={colors.onSurface}
-                  style={{ marginRight: 8 }}
-                />
-                <Text
-                  variant="titleLarge"
-                  style={{ fontWeight: "bold", color: colors.onSurface }}
-                >
-                  Activity
-                </Text>
-              </View>
-              <ActivityHeatmap profiles={profiles} />
-            </View>
-          )}
-
-          {/* Problem of the Day Section */}
-          <View style={styles.sectionContainer}>
-            <View style={styles.sectionHeader}>
-              <MaterialCommunityIcons
-                name="lightning-bolt"
-                size={20}
-                color={colors.onSurface}
-                style={{ marginRight: 8 }}
-              />
-              <Text
-                variant="titleLarge"
-                style={{ fontWeight: "bold", color: colors.onSurface }}
-              >
-                Daily Challenge
-              </Text>
-            </View>
-            <View style={styles.potdRow}>
-              {/* LeetCode Card */}
+          {/* Daily Challenge */}
+          <View style={styles.section}>
+            <Text
+              variant="labelMedium"
+              style={[styles.label, { color: colors.onSurfaceVariant }]}
+            >
+              DAILY CHALLENGE
+            </Text>
+            <View style={{ paddingHorizontal: 24 }}>
+              {/* LeetCode */}
               <Surface
                 style={[
                   styles.potdCard,
                   {
                     backgroundColor: colors.surface,
                     borderColor: dark
-                      ? "rgba(255,255,255,0.15)"
+                      ? "rgba(255,255,255,0.08)"
                       : "rgba(0,0,0,0.05)",
-                    borderWidth: 1,
                   },
                 ]}
-                elevation={2}
+                elevation={0}
                 onTouchEnd={() =>
                   leetcode?.url && Linking.openURL(leetcode.url)
                 }
               >
                 <View
-                  style={[styles.potdHeader, { backgroundColor: "#FFA116" }]}
+                  style={[styles.potdBrand, { backgroundColor: "#FFA11615" }]}
                 >
                   <MaterialCommunityIcons
                     name="code-tags"
-                    size={16}
-                    color="white"
+                    size={14}
+                    color="#FFA116"
                   />
                   <Text
-                    variant="labelSmall"
                     style={{
-                      color: "white",
-                      fontWeight: "bold",
+                      color: "#FFA116",
+                      fontWeight: "800",
                       marginLeft: 4,
+                      fontSize: 10,
                     }}
                   >
                     LEETCODE
                   </Text>
                 </View>
-                <View style={styles.potdContent}>
+                <View style={styles.potdBody}>
                   {isPotdLoading && !leetcode ? (
                     <View style={{ gap: 8 }}>
-                      <Skeleton width="80%" height={16} />
+                      <Skeleton width="85%" height={14} />
                       <Skeleton width="40%" height={12} />
                     </View>
                   ) : (
                     <>
                       <Text
-                        variant="titleSmall"
+                        variant="bodyMedium"
                         numberOfLines={2}
-                        style={{ fontWeight: "bold" }}
+                        style={{
+                          fontWeight: "600",
+                          lineHeight: 20,
+                        }}
                       >
-                        {leetcode?.title || "Loading..."}
+                        {leetcode?.title || "No problem today"}
                       </Text>
                       <View
                         style={[
-                          styles.difficultyBadge,
+                          styles.diffBadge,
                           {
                             backgroundColor:
-                              getDifficultyColor(leetcode?.difficulty) + "20",
+                              getDifficultyColor(leetcode?.difficulty) + "18",
                           },
                         ]}
                       >
                         <Text
-                          variant="labelSmall"
                           style={{
                             color: getDifficultyColor(leetcode?.difficulty),
                             fontWeight: "700",
                             fontSize: 10,
                           }}
                         >
-                          {leetcode?.difficulty || "Easy"}
-                        </Text>
-                      </View>
-                    </>
-                  )}
-                </View>
-              </Surface>
-
-              {/* GFG Card */}
-              <Surface
-                style={[
-                  styles.potdCard,
-                  {
-                    backgroundColor: colors.surface,
-                    borderColor: dark
-                      ? "rgba(255,255,255,0.15)"
-                      : "rgba(0,0,0,0.05)",
-                    borderWidth: 1,
-                  },
-                ]}
-                elevation={2}
-                onTouchEnd={() => gfg?.url && Linking.openURL(gfg.url)}
-              >
-                <View
-                  style={[styles.potdHeader, { backgroundColor: "#2F8D46" }]}
-                >
-                  <MaterialCommunityIcons name="xml" size={16} color="white" />
-                  <Text
-                    variant="labelSmall"
-                    style={{
-                      color: "white",
-                      fontWeight: "bold",
-                      marginLeft: 4,
-                    }}
-                  >
-                    GFG
-                  </Text>
-                </View>
-                <View style={styles.potdContent}>
-                  {isPotdLoading && !gfg ? (
-                    <View style={{ gap: 8 }}>
-                      <Skeleton width="80%" height={16} />
-                      <Skeleton width="40%" height={12} />
-                    </View>
-                  ) : (
-                    <>
-                      <Text
-                        variant="titleSmall"
-                        numberOfLines={2}
-                        style={{ fontWeight: "bold" }}
-                      >
-                        {gfg?.title || "Loading..."}
-                      </Text>
-                      <View
-                        style={[
-                          styles.difficultyBadge,
-                          {
-                            backgroundColor:
-                              getDifficultyColor(gfg?.difficulty) + "20",
-                          },
-                        ]}
-                      >
-                        <Text
-                          variant="labelSmall"
-                          style={{
-                            color: getDifficultyColor(gfg?.difficulty),
-                            fontWeight: "700",
-                            fontSize: 10,
-                          }}
-                        >
-                          {gfg?.difficulty || "Unknown"}
+                          {leetcode?.difficulty || "—"}
                         </Text>
                       </View>
                     </>
@@ -403,40 +304,43 @@ export default function DashboardScreen() {
               </Surface>
             </View>
           </View>
-          <View style={styles.sectionContainer}>
-            <View style={styles.sectionHeader}>
-              <MaterialCommunityIcons
-                name="calendar-clock"
-                size={20}
-                color={colors.onSurface}
-                style={{ marginRight: 8 }}
-              />
+
+          {/* Upcoming Contests */}
+          <View style={styles.section}>
+            <View style={styles.labelRow}>
               <Text
-                variant="titleLarge"
-                style={{ fontWeight: "bold", color: colors.onSurface, flex: 1 }}
+                variant="labelMedium"
+                style={[
+                  styles.label,
+                  {
+                    color: colors.onSurfaceVariant,
+                    flex: 1,
+                    marginBottom: 0,
+                  },
+                ]}
               >
-                Upcoming
+                UPCOMING CONTESTS
               </Text>
-              {otherContests.length > 0 && (
+              {otherContests.length > 3 && (
                 <Text
                   variant="labelMedium"
-                  style={{ color: colors.primary, fontWeight: "600" }}
+                  style={{
+                    color: colors.primary,
+                    fontWeight: "600",
+                  }}
                   onPress={() => router.push("/contests")}
                 >
-                  View All →
+                  See all
                 </Text>
               )}
             </View>
-
             <ContestList
               contests={otherContests}
               emptyMessage="No contests in the next 7 days."
-              limit={10}
+              limit={3}
             />
           </View>
         </ScrollView>
-
-        {/* Floating Action Button for Sync */}
       </View>
     </ErrorBoundary>
   );
@@ -449,79 +353,70 @@ const styles = StyleSheet.create({
   content: {
     paddingBottom: 100,
   },
-  headerSection: {
-    paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 16,
+  greeting: {
+    paddingHorizontal: 24,
+    paddingTop: 4,
+    paddingBottom: 28,
   },
-  heroSection: {
-    paddingHorizontal: 20,
-    marginBottom: 24,
+  section: {
+    marginBottom: 32,
   },
-  heroCard: {
-    borderRadius: 20, // Slightly tighter radius
-    padding: 16, // Reduced padding from 20
+  label: {
+    paddingHorizontal: 24,
+    marginBottom: 14,
+    fontWeight: "700",
+    letterSpacing: 0.8,
+    fontSize: 11,
   },
-  heroHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  // Removed heroFooter as it's inline now
-  sectionContainer: {
-    marginBottom: 24,
-  },
-  sectionHeader: {
-    paddingHorizontal: 20,
-    marginBottom: 12,
+  labelRow: {
     flexDirection: "row",
     alignItems: "center",
+    paddingHorizontal: 24,
+    marginBottom: 14,
   },
-  profilesWrapper: {
-    // ProfileCarousel has its own padding
-  },
-  emptyState: {
+  connectCard: {
     flexDirection: "row",
     alignItems: "center",
     padding: 16,
-    marginHorizontal: 20,
+    marginHorizontal: 24,
     borderRadius: 16,
-    gap: 16,
+    borderWidth: 1,
+    gap: 14,
   },
-  emptyIconBox: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+  connectIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
   },
   potdRow: {
     flexDirection: "row",
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     gap: 12,
   },
   potdCard: {
     flex: 1,
     borderRadius: 16,
+    borderWidth: 1,
     overflow: "hidden",
-    height: 110,
   },
-  potdHeader: {
+  potdBrand: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
   },
-  potdContent: {
-    padding: 12,
-    justifyContent: "center",
-    flex: 1,
+  potdBody: {
+    paddingHorizontal: 14,
+    paddingBottom: 14,
+    paddingTop: 4,
+    gap: 8,
   },
-  difficultyBadge: {
+  diffBadge: {
     alignSelf: "flex-start",
     paddingHorizontal: 8,
-    paddingVertical: 2,
+    paddingVertical: 3,
     borderRadius: 6,
-    marginTop: 6,
   },
 });

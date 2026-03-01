@@ -62,11 +62,9 @@ export default function SettingsScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Appbar.Header
-        elevated
-        mode="center-aligned"
-        style={{ backgroundColor: colors.surface }}
+        style={{ backgroundColor: colors.background, elevation: 0 }}
       >
-        <Appbar.Content title="Settings" titleStyle={{ fontWeight: "bold" }} />
+        <Appbar.Content title="Settings" titleStyle={{ fontWeight: "800" }} />
       </Appbar.Header>
 
       <ScrollView contentContainerStyle={styles.content}>
@@ -310,10 +308,13 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingBottom: 40,
-    paddingHorizontal: 16,
+    paddingHorizontal: 24,
+    paddingTop: 8,
   },
   card: {
     paddingVertical: 0,
+    borderRadius: 16,
+    overflow: "hidden",
   },
   grid: {
     flexDirection: "row",
@@ -339,20 +340,21 @@ const styles = StyleSheet.create({
   },
   footer: {
     alignItems: "center",
-    marginTop: 24,
+    marginTop: 32,
     marginBottom: 20,
+    opacity: 0.5,
   },
   sectionContainer: {
-    marginBottom: 24,
+    marginBottom: 28,
   },
   sectionTitle: {
     fontWeight: "700",
-    marginBottom: 8,
-    marginLeft: 4,
+    marginBottom: 10,
+    marginLeft: 2,
     textTransform: "uppercase",
-    fontSize: 12,
-    letterSpacing: 1,
-    opacity: 0.6,
+    fontSize: 11,
+    letterSpacing: 0.8,
+    opacity: 0.5,
   },
   settingsCard: {
     borderRadius: 16,

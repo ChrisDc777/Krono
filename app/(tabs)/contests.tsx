@@ -43,7 +43,7 @@ export default function ContestsScreen() {
     setRefreshing(false);
   };
 
-  // Filter and Group Data
+  // Filter and Group Data — separate Ongoing from Upcoming
   const sections = useMemo(() => {
     const filtered = upcomingContests.filter((contest) => {
       const matchesPlatform =
@@ -51,6 +51,7 @@ export default function ContestsScreen() {
       return matchesPlatform;
     });
 
+    const ongoing: Contest[] = [];
     const today: Contest[] = [];
     const tomorrow: Contest[] = [];
     const thisWeek: Contest[] = [];
@@ -60,9 +61,16 @@ export default function ContestsScreen() {
 
     filtered.forEach((contest) => {
       const startDate = new Date(contest.startTime);
+      const endDate = new Date(contest.endTime);
       if (isNaN(startDate.getTime())) return;
 
-      if (isSameDay(startDate, now)) {
+      // Check if contest is currently running
+      const isRunning =
+        contest.phase === "running" || (startDate <= now && endDate >= now);
+
+      if (isRunning) {
+        ongoing.push(contest);
+      } else if (isSameDay(startDate, now)) {
         today.push(contest);
       } else if (isTomorrow(startDate)) {
         tomorrow.push(contest);
@@ -78,6 +86,8 @@ export default function ContestsScreen() {
     });
 
     const result = [];
+    if (ongoing.length > 0)
+      result.push({ title: "🔴 Live Now", data: ongoing });
     if (today.length > 0) result.push({ title: "Today", data: today });
     if (tomorrow.length > 0) result.push({ title: "Tomorrow", data: tomorrow });
     if (thisWeek.length > 0)

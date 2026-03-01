@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Dimensions, StyleSheet, View } from "react-native";
 import { Surface, Text, useTheme } from "react-native-paper";
+import { clistApi } from "../../api/clist";
 import { codeforcesApi } from "../../api/codeforces";
 import { leetcodeApi } from "../../api/leetcode";
 import { PlatformId, PLATFORMS } from "../../types/platform";
@@ -20,10 +21,6 @@ interface RatingChartProps {
 const CHART_HEIGHT = 160;
 const CHART_PADDING = 16;
 
-/**
- * Minimal rating history chart using pure RN Views (no Victory dependency needed).
- * Draws a polyline-approximation using positioned dots and a gradient bg.
- */
 export function RatingChart({ profiles }: RatingChartProps) {
   const { colors, dark } = useTheme();
   const [historyMap, setHistoryMap] = useState<Record<string, RatingPoint[]>>(
@@ -31,7 +28,7 @@ export function RatingChart({ profiles }: RatingChartProps) {
   );
   const [isLoading, setIsLoading] = useState(false);
 
-  const screenWidth = Dimensions.get("window").width - 40; // minus padding
+  const screenWidth = Dimensions.get("window").width - 40;
 
   const fetchHistory = useCallback(async () => {
     setIsLoading(true);
@@ -40,6 +37,7 @@ export function RatingChart({ profiles }: RatingChartProps) {
     for (const profile of profiles) {
       try {
         if (profile.platformId === "codeforces") {
+          // Codeforces has a direct API
           const data = await codeforcesApi.getUserRating(profile.username);
           if (Array.isArray(data) && data.length > 0) {
             result[profile.platformId] = data.map((d: any) => ({
@@ -49,6 +47,7 @@ export function RatingChart({ profiles }: RatingChartProps) {
             }));
           }
         } else if (profile.platformId === "leetcode") {
+          // LeetCode contest ranking API
           const data = await leetcodeApi.getUserContestRanking(
             profile.username,
           );
@@ -62,10 +61,48 @@ export function RatingChart({ profiles }: RatingChartProps) {
               }));
             }
           }
+        } else if (profile.platformId === "atcoder") {
+          // AtCoder has official history JSON
+          try {
+            const axios = require("axios");
+            const resp = await axios.get(
+              `https://atcoder.jp/users/${profile.username}/history/json`,
+            );
+            if (Array.isArray(resp.data) && resp.data.length > 0) {
+              result[profile.platformId] = resp.data.map((d: any) => ({
+                date: new Date(d.EndTime).getTime(),
+                rating: d.NewRating,
+                label: d.ContestName,
+              }));
+            }
+          } catch {
+            // Fallback to clist.by
+            const history = await clistApi.getRatingHistory(
+              profile.platformId,
+              profile.username,
+            );
+            if (history.length > 0) {
+              result[profile.platformId] = history.map((s) => ({
+                date: new Date(s.date).getTime(),
+                rating: s.new_rating!,
+                label: s.event,
+              }));
+            }
+          }
+        } else if (profile.platformId === "codechef") {
+          // CodeChef — use clist.by statistics for reliable rating history
+          const history = await clistApi.getRatingHistory(
+            profile.platformId,
+            profile.username,
+          );
+          if (history.length > 0) {
+            result[profile.platformId] = history.map((s) => ({
+              date: new Date(s.date).getTime(),
+              rating: s.new_rating!,
+              label: s.event,
+            }));
+          }
         }
-        // AtCoder — already fetched via history JSON in getUserInfo, but
-        // we'd need a separate call. Skip for now since the API already
-        // gives current rating in profile.
       } catch (e) {
         console.warn(`[RatingChart] Failed to fetch ${profile.platformId}:`, e);
       }
@@ -103,7 +140,6 @@ export function RatingChart({ profiles }: RatingChartProps) {
         let color = platformConfig?.color || colors.primary;
         if (platformId === "atcoder" && !dark) color = "#000";
 
-        // Compute bounds
         const ratings = points.map((p) => p.rating);
         const minR = Math.min(...ratings);
         const maxR = Math.max(...ratings);
@@ -119,13 +155,12 @@ export function RatingChart({ profiles }: RatingChartProps) {
               {
                 backgroundColor: colors.surface,
                 borderColor: dark
-                  ? "rgba(255,255,255,0.1)"
+                  ? "rgba(255,255,255,0.08)"
                   : "rgba(0,0,0,0.05)",
               },
             ]}
-            elevation={1}
+            elevation={0}
           >
-            {/* Header */}
             <View style={styles.chartHeader}>
               <View style={[styles.platformDot, { backgroundColor: color }]} />
               <Text variant="labelMedium" style={{ fontWeight: "700" }}>
@@ -142,9 +177,7 @@ export function RatingChart({ profiles }: RatingChartProps) {
               </Text>
             </View>
 
-            {/* Chart area */}
             <View style={[styles.chartArea, { height: CHART_HEIGHT }]}>
-              {/* Horizontal grid lines */}
               {[0, 0.25, 0.5, 0.75, 1].map((pct) => (
                 <View
                   key={pct}
@@ -153,14 +186,13 @@ export function RatingChart({ profiles }: RatingChartProps) {
                     {
                       bottom: pct * (CHART_HEIGHT - 20),
                       backgroundColor: dark
-                        ? "rgba(255,255,255,0.05)"
-                        : "rgba(0,0,0,0.04)",
+                        ? "rgba(255,255,255,0.04)"
+                        : "rgba(0,0,0,0.03)",
                     },
                   ]}
                 />
               ))}
 
-              {/* Data points + connecting lines */}
               {points.map((point, i) => {
                 const x = (i / (points.length - 1)) * chartWidth;
                 const y =
@@ -181,7 +213,6 @@ export function RatingChart({ profiles }: RatingChartProps) {
                 );
               })}
 
-              {/* Connecting lines using Views */}
               {points.slice(0, -1).map((point, i) => {
                 const next = points[i + 1];
                 const x1 =
@@ -196,7 +227,7 @@ export function RatingChart({ profiles }: RatingChartProps) {
                 const dx = x2 - x1;
                 const dy = y2 - y1;
                 const length = Math.sqrt(dx * dx + dy * dy);
-                const angle = Math.atan2(-dy, dx) * (180 / Math.PI); // negative because bottom-based
+                const angle = Math.atan2(-dy, dx) * (180 / Math.PI);
 
                 return (
                   <View
@@ -208,8 +239,12 @@ export function RatingChart({ profiles }: RatingChartProps) {
                       width: length,
                       height: 2,
                       backgroundColor: color,
-                      opacity: 0.6,
-                      transform: [{ rotate: `${angle}deg` }],
+                      opacity: 0.5,
+                      transform: [
+                        {
+                          rotate: `${angle}deg`,
+                        },
+                      ],
                       transformOrigin: "left bottom",
                     }}
                   />
@@ -217,7 +252,6 @@ export function RatingChart({ profiles }: RatingChartProps) {
               })}
             </View>
 
-            {/* Min/Max labels */}
             <View style={styles.chartFooter}>
               <Text variant="labelSmall" style={{ color: colors.outline }}>
                 Low: {minR}
@@ -235,7 +269,7 @@ export function RatingChart({ profiles }: RatingChartProps) {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     gap: 12,
   },
   chartCard: {

@@ -11,6 +11,7 @@ import {
 import { Surface, Text, useTheme } from "react-native-paper";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { clistApi } from "../../api/clist";
+import { leetcodeApi } from "../../api/leetcode";
 import { PLATFORMS } from "../../types/platform";
 import { UnifiedProfile } from "../../types/user";
 import { ContestHistory } from "../charts/ContestHistory";
@@ -34,11 +35,25 @@ export function ProfileDetailModal({
   useEffect(() => {
     if (profile && visible) {
       setContestCount(null);
-      clistApi
-        .getAccountInfo(profile.platformId, profile.username)
-        .then((acc) => {
-          if (acc) setContestCount(acc.n_contests);
-        });
+
+      if (profile.platformId === "leetcode") {
+        // LeetCode: use its own GraphQL API (clist.by doesn't index LC)
+        leetcodeApi
+          .getUserContestRanking(profile.username)
+          .then((data) => {
+            if (data?.ranking?.attendedContestsCount != null) {
+              setContestCount(data.ranking.attendedContestsCount);
+            }
+          })
+          .catch(() => {});
+      } else {
+        // CF, AC, CC: use clist.by
+        clistApi
+          .getAccountInfo(profile.platformId, profile.username)
+          .then((acc) => {
+            if (acc) setContestCount(acc.n_contests);
+          });
+      }
     }
   }, [profile?.id, visible]);
 

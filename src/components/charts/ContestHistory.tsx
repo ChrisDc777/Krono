@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Surface, Text, useTheme } from "react-native-paper";
 import { clistApi } from "../../api/clist";
+import { leetcodeApi } from "../../api/leetcode";
 import { UnifiedProfile } from "../../types/user";
 import { Skeleton } from "../common/SkeletonLoader";
 
@@ -19,8 +20,9 @@ interface ContestEntry {
 }
 
 /**
- * Shows recent contest participation history fetched from clist.by.
- * Uses cached data from the clist API module to avoid duplicate calls.
+ * Shows recent contest participation history.
+ * Uses LeetCode's own GraphQL API for LC profiles.
+ * Uses clist.by for CF, AC, CC profiles.
  */
 export function ContestHistory({ profiles }: ContestHistoryProps) {
   const { colors, dark } = useTheme();
@@ -34,22 +36,62 @@ export function ContestHistory({ profiles }: ContestHistoryProps) {
     setIsLoading(true);
     setEntries([]);
 
-    clistApi
-      .getRecentContests(profile.platformId, profile.username, 20)
-      .then((stats) => {
-        const mapped: ContestEntry[] = stats.map((s) => ({
-          event: s.event || "Contest",
-          date: s.date || "",
-          place: s.place || 0,
-          ratingChange: s.rating_change,
-          newRating: s.new_rating,
-        }));
-        setEntries(mapped);
-      })
-      .catch((e) => {
-        console.warn("[ContestHistory] fetch failed:", e);
-      })
-      .finally(() => setIsLoading(false));
+    if (profile.platformId === "leetcode") {
+      // LeetCode: use its own GraphQL API
+      leetcodeApi
+        .getUserContestRanking(profile.username)
+        .then((data) => {
+          if (data?.history && Array.isArray(data.history)) {
+            // Keep chronological order for computing deltas
+            const attendedAsc = data.history.filter((h: any) => h.attended);
+            // Compute rating change by comparing consecutive contests
+            const withChanges = attendedAsc.map((h: any, i: number) => {
+              const curRating = h.rating ? Math.round(h.rating) : null;
+              const prevRating =
+                i > 0 && attendedAsc[i - 1].rating
+                  ? Math.round(attendedAsc[i - 1].rating)
+                  : null;
+              const change =
+                curRating !== null && prevRating !== null
+                  ? curRating - prevRating
+                  : null;
+              return {
+                event: h.contest?.title || "Contest",
+                date: h.contest?.startTime
+                  ? new Date(h.contest.startTime * 1000).toISOString()
+                  : "",
+                place: h.ranking || 0,
+                ratingChange: change,
+                newRating: curRating,
+              };
+            });
+            // Show newest first, limited to 20
+            setEntries(withChanges.reverse().slice(0, 20));
+          }
+        })
+        .catch((e) => {
+          console.warn("[ContestHistory] LC fetch failed:", e);
+        })
+        .finally(() => setIsLoading(false));
+    } else {
+      // CF, AC, CC: use clist.by
+      clistApi
+        .getRecentContests(profile.platformId, profile.username, 20)
+        .then((stats) => {
+          const mapped: ContestEntry[] = stats.map((s) => ({
+            event: s.event || "Contest",
+            date: s.date || "",
+            place: s.place || 0,
+            ratingChange: s.rating_change,
+            newRating: s.new_rating,
+          }));
+          setEntries(mapped);
+        })
+        .catch((e) => {
+          console.warn("[ContestHistory] fetch failed:", e);
+        })
+        .finally(() => setIsLoading(false));
+    }
   }, [profiles]);
 
   if (isLoading) {

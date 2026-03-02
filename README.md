@@ -1,4 +1,4 @@
-# ⏳ Krono
+# Krono
 
 A sleek, modern mobile app for competitive programmers — track contests, sync profiles, and monitor your rating across **Codeforces**, **LeetCode**, **AtCoder**, and **CodeChef**.
 
@@ -6,7 +6,7 @@ Built with **React Native (Expo)** and **Material Design 3**.
 
 ---
 
-## 📱 Screenshots
+## Screenshots
 
 <p align="center">
   <img src="assets/images/dashboard.jpg" width="200" alt="Dashboard" />
@@ -17,18 +17,18 @@ Built with **React Native (Expo)** and **Material Design 3**.
 
 ---
 
-## ✨ Features
+##  Features
 
-- **🏆 Multi-Platform Contests** — Live, upcoming, and past contests from Codeforces, LeetCode, AtCoder, and CodeChef in one view.
-- **📊 Profile Sync** — Connect your handles to see live ratings, global ranks, and solved problem counts.
-- **📈 Rating Graphs** — Interactive rating history charts for every platform.
-- **📋 Contest History** — Browse your recent contest results with rank and rating change.
-- **🔔 Smart Reminders** — Get notified before contests start.
-- **🌙 Dark & Light Mode** — Beautiful UI with Material You theming.
+- **Multi-Platform Contests** — Live, upcoming, and past contests from Codeforces, LeetCode, AtCoder, and CodeChef in one view.
+- **Profile Sync** — Connect your handles to see live ratings, global ranks, and solved problem counts.
+- **Rating Graphs** — Interactive rating history charts for every platform.
+- **Contest History** — Browse your recent contest results with rank and rating change.
+- **Smart Reminders** — Get notified before contests start.
+- **Dark & Light Mode** — Beautiful UI with Material You theming.
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer      | Technology                                               |
 | ---------- | -------------------------------------------------------- |
@@ -41,7 +41,7 @@ Built with **React Native (Expo)** and **Material Design 3**.
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 
@@ -80,7 +80,7 @@ Get your API key at [clist.by/api/v4/doc](https://clist.by/api/v4/doc/).
 
 ---
 
-## 📝 Configuration
+## Configuration
 
 Customize via the in-app **Settings** screen:
 

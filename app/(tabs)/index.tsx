@@ -70,17 +70,39 @@ export default function DashboardScreen() {
 
   const isLoading = isProfileLoading || isContestLoading || isPotdLoading;
 
-  const sevenDaysFromNow = Date.now() + 7 * 24 * 60 * 60 * 1000;
-  const otherContests =
-    upcomingContests.length > 0
-      ? upcomingContests.filter((c) => {
-          const t =
-            c.startTime instanceof Date
-              ? c.startTime.getTime()
-              : new Date(c.startTime).getTime();
-          return t <= sevenDaysFromNow;
-        })
-      : [];
+  const now = Date.now();
+  const sevenDaysFromNow = now + 7 * 24 * 60 * 60 * 1000;
+
+  // Split contests into ongoing (live) and upcoming
+  const ongoingContests = upcomingContests.filter((c) => {
+    if (c.phase === "running") return true;
+    const start =
+      c.startTime instanceof Date
+        ? c.startTime.getTime()
+        : new Date(c.startTime).getTime();
+    const end = c.endTime
+      ? c.endTime instanceof Date
+        ? c.endTime.getTime()
+        : new Date(c.endTime).getTime()
+      : start;
+    return start <= now && now <= end;
+  });
+
+  const upcomingOnly = upcomingContests.filter((c) => {
+    // Exclude ongoing ones
+    if (c.phase === "running") return false;
+    const start =
+      c.startTime instanceof Date
+        ? c.startTime.getTime()
+        : new Date(c.startTime).getTime();
+    const end = c.endTime
+      ? c.endTime instanceof Date
+        ? c.endTime.getTime()
+        : new Date(c.endTime).getTime()
+      : start;
+    if (start <= now && now <= end) return false;
+    return start <= sevenDaysFromNow;
+  });
 
   if (isLoading && profiles.length === 0 && upcomingContests.length === 0) {
     return (
@@ -305,6 +327,24 @@ export default function DashboardScreen() {
             </View>
           </View>
 
+          {/* Live Now */}
+          {ongoingContests.length > 0 && (
+            <View style={styles.section}>
+              <Text
+                variant="labelMedium"
+                style={[
+                  styles.label,
+                  {
+                    color: "#EF4444",
+                  },
+                ]}
+              >
+                🔴 LIVE NOW
+              </Text>
+              <ContestList contests={ongoingContests} emptyMessage="" />
+            </View>
+          )}
+
           {/* Upcoming Contests */}
           <View style={styles.section}>
             <View style={styles.labelRow}>
@@ -321,7 +361,7 @@ export default function DashboardScreen() {
               >
                 UPCOMING CONTESTS
               </Text>
-              {otherContests.length > 3 && (
+              {upcomingOnly.length > 3 && (
                 <Text
                   variant="labelMedium"
                   style={{
@@ -335,7 +375,7 @@ export default function DashboardScreen() {
               )}
             </View>
             <ContestList
-              contests={otherContests}
+              contests={upcomingOnly}
               emptyMessage="No contests in the next 7 days."
               limit={3}
             />

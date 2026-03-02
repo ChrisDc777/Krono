@@ -9,7 +9,7 @@ import {
     JetBrainsMono_400Regular,
     JetBrainsMono_700Bold,
 } from "@expo-google-fonts/jetbrains-mono";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
@@ -19,60 +19,69 @@ import {
     notificationService,
     setupNotificationHandler,
 } from "../src/services/notificationService";
+import { useOnboardingStore } from "../src/stores/useOnboardingStore";
 import { useThemeStore } from "../src/stores/useThemeStore";
 import { theme as md3Theme } from "../src/theme/md3-theme";
 
-// Set up the notification handler synchronously as early as possible,
-// before any async work or renders. This is the correct place — NOT inside
-// the module body of notificationService.ts, where the native module may
-// not yet be initialised.
 setupNotificationHandler();
 
-// Keep the splash screen visible while fonts are loading.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-    const isDarkMode = useThemeStore((state) => state.isDarkMode);
+  const isDarkMode = useThemeStore((state) => state.isDarkMode);
+  const router = useRouter();
 
-    const [fontsLoaded] = useFonts({
-        Inter_400Regular,
-        Inter_600SemiBold,
-        Inter_700Bold,
-        Inter_900Black,
-        JetBrainsMono_400Regular,
-        JetBrainsMono_700Bold,
-    });
+  const { hasCompleted, isLoading, checkOnboarding } = useOnboardingStore();
 
-    // Hide the splash screen as soon as fonts are ready.
-    useEffect(() => {
-        if (fontsLoaded) {
-            SplashScreen.hideAsync();
-        }
-    }, [fontsLoaded]);
+  const [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_600SemiBold,
+    Inter_700Bold,
+    Inter_900Black,
+    JetBrainsMono_400Regular,
+    JetBrainsMono_700Bold,
+  });
 
-    // One-time service initialisation — runs only once after first mount.
-    // Kept separate from the font effect so a font-reload never re-triggers these.
-    useEffect(() => {
-        registerBackgroundTask();
-        notificationService.requestPermissions();
-    }, []);
+  // Check onboarding status on mount
+  useEffect(() => {
+    checkOnboarding();
+  }, []);
 
-    if (!fontsLoaded) {
-        return null;
+  // Hide splash and navigate once fonts + onboarding check are ready
+  useEffect(() => {
+    if (fontsLoaded && !isLoading) {
+      SplashScreen.hideAsync();
+
+      if (hasCompleted === false) {
+        // First time user — show onboarding
+        router.replace("/onboarding" as any);
+      }
     }
+  }, [fontsLoaded, isLoading, hasCompleted]);
 
-    const activeTheme = isDarkMode ? md3Theme.dark : md3Theme.light;
+  // One-time service initialisation
+  useEffect(() => {
+    registerBackgroundTask();
+    notificationService.requestPermissions();
+  }, []);
 
-    return (
-        <PaperProvider theme={activeTheme}>
-            <StatusBar
-                style={isDarkMode ? "light" : "dark"}
-                backgroundColor={activeTheme.colors.background}
-            />
-            <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="+not-found" />
-            </Stack>
-        </PaperProvider>
-    );
+  if (!fontsLoaded || isLoading) {
+    return null;
+  }
+
+  const activeTheme = isDarkMode ? md3Theme.dark : md3Theme.light;
+
+  return (
+    <PaperProvider theme={activeTheme}>
+      <StatusBar
+        style={isDarkMode ? "light" : "dark"}
+        backgroundColor={activeTheme.colors.background}
+      />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="onboarding" options={{ animation: "fade" }} />
+        <Stack.Screen name="+not-found" />
+      </Stack>
+    </PaperProvider>
+  );
 }

@@ -1,4 +1,5 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import {
@@ -17,6 +18,7 @@ import {
     useTheme,
 } from "react-native-paper";
 import { notificationService } from "../../src/services/notificationService";
+import { useOnboardingStore } from "../../src/stores/useOnboardingStore";
 import { useProfileStore } from "../../src/stores/useProfileStore";
 import { useSettingsStore } from "../../src/stores/useSettingsStore";
 import { useThemeStore } from "../../src/stores/useThemeStore";
@@ -24,8 +26,10 @@ import { PLATFORMS, PlatformId } from "../../src/types/platform";
 
 export default function SettingsScreen() {
   const { colors } = useTheme();
+  const router = useRouter();
   const { isDarkMode, toggleTheme } = useThemeStore();
   const { profiles, addProfile, removeProfile, isLoading } = useProfileStore();
+  const { resetOnboarding } = useOnboardingStore();
   const {
     notificationsEnabled,
     backgroundSyncEnabled,
@@ -251,9 +255,29 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* About */}
+        <View style={styles.sectionContainer}>
+          <Text variant="titleMedium" style={styles.sectionTitle}>
+            About
+          </Text>
+          <Card style={styles.card} mode="elevated" elevation={1}>
+            <List.Item
+              title="Replay Walkthrough"
+              description="See the intro guide again"
+              left={(props) => (
+                <List.Icon {...props} icon="book-open-page-variant-outline" />
+              )}
+              onPress={async () => {
+                await resetOnboarding();
+                router.replace("/onboarding" as any);
+              }}
+            />
+          </Card>
+        </View>
+
         <View style={styles.footer}>
           <Text variant="bodySmall" style={{ color: colors.outline }}>
-            v1.0.0 • Krono
+            v1.1.0 • Krono
           </Text>
           <Text
             variant="bodySmall"

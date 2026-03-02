@@ -1,7 +1,7 @@
 import axios from "axios";
 
-const API_KEY = "4f2926cfec3bf8b26b3694f7b5d921bd1217598e";
-const API_USER = "Voidy";
+const API_KEY = process.env.EXPO_PUBLIC_CLIST_API_KEY || "";
+const API_USER = process.env.EXPO_PUBLIC_CLIST_USERNAME || "";
 const BASE_URL = "https://clist.by/api/v4/json";
 
 // Map our platform IDs to clist.by resource names

@@ -1,40 +1,43 @@
-# ⏳ Krono - Competitive Programming Tracker
+# ⏳ Krono
 
-**Krono** is a beautiful, modern mobile application designed for competitive programmers. It helps you track upcoming contests across multiple platforms, sync your profile stats, and never miss a round with smart reminders.
+A sleek, modern mobile app for competitive programmers — track contests, sync profiles, and monitor your rating across **Codeforces**, **LeetCode**, **AtCoder**, and **CodeChef**.
 
 Built with **React Native (Expo)** and **Material Design 3**.
 
 ---
 
-## ✨ Features
+## 📱 Screenshots
 
-- **🏆 Contest Tracking**: View upcoming contests from Codeforces, LeetCode, AtCoder, CodeChef, and more.
-- **📊 Profile Sync**: Connect your profiles to see your live ratings, ranks, and problem solved counts.
-- **🔔 Smart Notifications**: Get reminders 15 minutes or 1 hour before a contest starts.
-- **🎨 Modern UI**: A sleek, "Neobrutalism meets Material You" aesthetic with Dark/Light mode support.
-- **⚡ Background Sync**: Keeps your contest schedule updated even when you're away.
+<p align="center">
+  <img src="assets/images/dashboard.jpg" width="200" alt="Dashboard" />
+  <img src="assets/images/schedule.jpg" width="200" alt="Contest Schedule" />
+  <img src="assets/images/profile1.jpg" width="200" alt="Profile Overview" />
+  <img src="assets/images/profile2.jpg" width="200" alt="Contest History" />
+</p>
 
 ---
 
-## 📱 Screenshots
+## ✨ Features
 
-|                     **Dashboard**                     |                 **Profile Stats**                 |                **Settings & Theme**                 |
-| :---------------------------------------------------: | :-----------------------------------------------: | :-------------------------------------------------: |
-| ![Dashboard](assets/images/dashboard_placeholder.png) | ![Profile](assets/images/profile_placeholder.png) | ![Settings](assets/images/settings_placeholder.png) |
-|                 _Clean schedule view_                 |               _Detailed user stats_               |                _Highly customizable_                |
-
-_(Place screenshots in `assets/images/` with the names above)_
+- **🏆 Multi-Platform Contests** — Live, upcoming, and past contests from Codeforces, LeetCode, AtCoder, and CodeChef in one view.
+- **📊 Profile Sync** — Connect your handles to see live ratings, global ranks, and solved problem counts.
+- **📈 Rating Graphs** — Interactive rating history charts for every platform.
+- **📋 Contest History** — Browse your recent contest results with rank and rating change.
+- **🔔 Smart Reminders** — Get notified before contests start.
+- **🌙 Dark & Light Mode** — Beautiful UI with Material You theming.
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Framework**: [React Native](https://reactnative.dev/) with [Expo SDK 52](https://expo.dev/)
-- **UI System**: [React Native Paper](https://callstack.github.io/react-native-paper/) (Material Design 3)
-- **State Management**: [Zustand](https://github.com/pmndrs/zustand)
-- **Navigation**: [Expo Router](https://docs.expo.dev/router/introduction/)
-- **Storage**: AsyncStorage
-- **Icons**: Material Community Icons
+| Layer      | Technology                                               |
+| ---------- | -------------------------------------------------------- |
+| Framework  | React Native + Expo SDK 52                               |
+| UI         | React Native Paper (Material Design 3)                   |
+| State      | Zustand                                                  |
+| Navigation | Expo Router                                              |
+| APIs       | Codeforces API, LeetCode GraphQL, AtCoder JSON, Clist.by |
+| Storage    | AsyncStorage                                             |
 
 ---
 
@@ -42,45 +45,49 @@ _(Place screenshots in `assets/images/` with the names above)_
 
 ### Prerequisites
 
-- Node.js (v18+)
+- Node.js v18+
 - npm or yarn
-- iOS Simulator or Android Emulator (or physical device with Expo Go)
+- Android Emulator / iOS Simulator / Expo Go on a physical device
 
-### Installation
+### Setup
 
-1. **Clone the repository**
+```bash
+# Clone
+git clone https://github.com/MeetThakur/Krono.git
+cd Krono
 
-   ```bash
-   git clone https://github.com/yourusername/krono.git
-   cd krono
-   ```
+# Install dependencies
+npm install
 
-2. **Install dependencies**
+# Configure environment variables
+cp .env.example .env
+# Edit .env and add your Clist.by API key
 
-   ```bash
-   npm install
-   ```
+# Start development server
+npm start
+```
 
-3. **Start the app**
+Press `a` for Android, `i` for iOS, or scan the QR code with Expo Go.
 
-   ```bash
-   npm start
-   ```
+### Environment Variables
 
-4. **Run on device**
-   - Press `a` for Android Emulator
-   - Press `i` for iOS Simulator
-   - Scan the QR code with Expo Go on your phone
+| Variable                     | Description                               |
+| ---------------------------- | ----------------------------------------- |
+| `EXPO_PUBLIC_CLIST_API_KEY`  | Your [Clist.by](https://clist.by) API key |
+| `EXPO_PUBLIC_CLIST_USERNAME` | Your Clist.by username                    |
+
+Get your API key at [clist.by/api/v4/doc](https://clist.by/api/v4/doc/).
 
 ---
 
 ## 📝 Configuration
 
-You can customize app behavior in `src/utils/constants.ts` or through the in-app **Settings** screen:
+Customize via the in-app **Settings** screen:
 
-- Toggle Dark/Light mode
-- Enable/Disable background sync
-- Manage notification intervals
+- Toggle Dark / Light mode
+- Enable background sync
+- Manage notification timing
+- Clear local cache
 
 ---
 

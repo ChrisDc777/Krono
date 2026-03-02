@@ -49,33 +49,16 @@ export function ActivityHeatmap({ profiles }: ActivityHeatmapProps) {
             }
           }
         } else {
-          // For LC, AC, CC — use clist.by statistics to get contest participation dates
-          const account = await clistApi.getAccountInfo(
+          // For LC, AC, CC — use clist.by statistics (cached)
+          const stats = await clistApi.getStatistics(
             profile.platformId,
             profile.username,
           );
-          if (account) {
-            const axios = require("axios");
-            const resp = await axios.get(
-              "https://clist.by/api/v4/json/statistics/",
-              {
-                params: {
-                  username: "Voidy",
-                  api_key: "4f2926cfec3bf8b26b3694f7b5d921bd1217598e",
-                  account_id: account.id,
-                  order_by: "-date",
-                  limit: 200,
-                },
-              },
-            );
-            if (Array.isArray(resp.data?.objects)) {
-              for (const stat of resp.data.objects) {
-                if (stat.date) {
-                  const date = new Date(stat.date);
-                  const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-                  map[key] = (map[key] || 0) + 1;
-                }
-              }
+          for (const stat of stats) {
+            if (stat.date) {
+              const date = new Date(stat.date);
+              const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+              map[key] = (map[key] || 0) + 1;
             }
           }
         }

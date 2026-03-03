@@ -46,10 +46,10 @@ export const lightColors = {
 };
 
 export const darkColors = {
-  background: "#121212", // Charcoal
-  surface: "#1E1E1E", // Lighter charcoal
-  surfaceHighlight: "#2A2A2A", // Highlight
-  border: "#383838", // Subtle border
+  background: "#0D0D0D", // Near black
+  surface: "#1C1C1E", // Card surface — clearly lighter
+  surfaceHighlight: "#2C2C2E", // Badges, pills
+  border: "#3A3A3C", // Subtle border
 
   primary: "#FAFAFA", // White accent
   secondary: "#9E9E9E", // Neutral 400
@@ -60,7 +60,7 @@ export const darkColors = {
     secondary: "#9E9E9E", // Neutral gray
     muted: "#757575", // Mid gray
     disabled: "#4A4A4A", // Dim
-    inverse: "#121212", // Charcoal
+    inverse: "#0D0D0D", // Near black
   },
 
   status: {

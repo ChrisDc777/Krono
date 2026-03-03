@@ -62,22 +62,22 @@ const lightColors = {
 const darkColors = {
   ...MD3DarkTheme.colors,
   primary: customDark.primary, // White
-  onPrimary: "#121212", // Charcoal
+  onPrimary: "#0D0D0D", // Charcoal
   primaryContainer: "#2A2A2A",
   onPrimaryContainer: "#FAFAFA",
 
   secondary: customDark.secondary, // Slate 400
-  onSecondary: "#121212",
+  onSecondary: "#0D0D0D",
   secondaryContainer: "#2A2A2A",
   onSecondaryContainer: "#9E9E9E",
 
   tertiary: customDark.accent, // Slate 300
-  onTertiary: "#121212",
+  onTertiary: "#0D0D0D",
   tertiaryContainer: "#383838",
   onTertiaryContainer: "#C0C0C0",
 
   error: customDark.status.error,
-  onError: "#121212",
+  onError: "#0D0D0D",
   errorContainer: "#7F1D1D",
   onErrorContainer: "#FECACA",
 
@@ -94,16 +94,16 @@ const darkColors = {
   shadow: "transparent",
   scrim: "#000000",
   inverseSurface: "#FAFAFA",
-  inverseOnSurface: "#121212",
-  inversePrimary: "#121212",
+  inverseOnSurface: "#0D0D0D",
+  inversePrimary: "#0D0D0D",
 
   elevation: {
     level0: "transparent",
-    level1: "#181818",
-    level2: "#1E1E1E",
-    level3: "#252525",
-    level4: "#252525",
-    level5: "#2E2E2E",
+    level1: "#141416",
+    level2: "#1C1C1E",
+    level3: "#222224",
+    level4: "#222224",
+    level5: "#2C2C2E",
   },
   surfaceDisabled: "rgba(255, 255, 255, 0.04)",
   onSurfaceDisabled: "rgba(255, 255, 255, 0.38)",

@@ -230,16 +230,10 @@ export default function DashboardScreen() {
                 style={[
                   styles.potdCard,
                   {
-                    backgroundColor: dark
-                      ? colors.surfaceVariant
-                      : colors.surface,
+                    backgroundColor: colors.surface,
                     borderColor: dark
-                      ? "rgba(255,255,255,0.08)"
-                      : "rgba(0,0,0,0.06)",
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: dark ? 0 : 0.04,
-                    shadowRadius: 8,
+                      ? "rgba(255,255,255,0.12)"
+                      : "rgba(0,0,0,0.08)",
                   },
                 ]}
                 elevation={0}

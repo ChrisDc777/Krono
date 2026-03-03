@@ -104,9 +104,9 @@ export function ProfileDetailModal({
           },
         ]}
       >
-        {/* Header with platform color */}
+        {/* Header — full platform color */}
         <View style={[styles.header, { backgroundColor: platformColor }]}>
-          {/* Close button */}
+          {/* Close button top-right */}
           <Pressable
             onPress={onDismiss}
             style={styles.closeButton}
@@ -114,85 +114,88 @@ export function ProfileDetailModal({
           >
             <MaterialCommunityIcons
               name="close"
-              size={22}
+              size={18}
               color={onPlatformColor}
             />
           </Pressable>
 
-          {/* Watermark */}
-          <View style={styles.watermark}>
-            <MaterialCommunityIcons
-              name={(platformConfig?.icon as any) || "code-tags"}
-              size={120}
-              color={onPlatformColor}
-              style={{ opacity: 0.08 }}
-            />
-          </View>
-
-          {/* Profile info */}
-          <View style={styles.headerContent}>
+          {/* Profile Row */}
+          <View style={styles.profileRow}>
+            {/* Left: Icon + Username + Rank */}
             <View
-              style={[
-                styles.platformBadge,
-                { backgroundColor: "rgba(255,255,255,0.2)" },
-              ]}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 12,
+                flex: 1,
+              }}
             >
-              <MaterialCommunityIcons
-                name={(platformConfig?.icon as any) || "code-tags"}
-                size={14}
-                color={onPlatformColor}
-              />
-              <Text
-                style={{
-                  color: onPlatformColor,
-                  fontWeight: "800",
-                  fontSize: 10,
-                  marginLeft: 4,
-                }}
+              <View
+                style={[
+                  styles.avatarCircle,
+                  { backgroundColor: "rgba(255,255,255,0.2)" },
+                ]}
               >
-                {platformConfig?.name?.toUpperCase()}
-              </Text>
+                <MaterialCommunityIcons
+                  name={(platformConfig?.icon as any) || "code-tags"}
+                  size={20}
+                  color={onPlatformColor}
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={{
+                    fontWeight: "800",
+                    color: onPlatformColor,
+                    fontSize: 18,
+                    letterSpacing: -0.3,
+                  }}
+                  numberOfLines={1}
+                >
+                  {profile.username}
+                </Text>
+                {profile.rank ? (
+                  <Text
+                    style={{
+                      color: onPlatformColor,
+                      opacity: 0.8,
+                      fontWeight: "600",
+                      fontSize: 12,
+                      marginTop: 1,
+                    }}
+                  >
+                    {profile.rank}
+                  </Text>
+                ) : null}
+              </View>
             </View>
 
-            <Text
-              variant="displaySmall"
-              style={{
-                fontWeight: "900",
-                color: onPlatformColor,
-                letterSpacing: -1,
-                marginTop: 12,
-              }}
-            >
-              {profile.rating ?? "Unrated"}
-            </Text>
-
-            {profile.rank ? (
-              <Text
-                variant="titleSmall"
-                style={{
-                  color: onPlatformColor,
-                  fontWeight: "700",
-                  textTransform: "uppercase",
-                  letterSpacing: 1,
-                  opacity: 0.9,
-                  marginTop: 2,
-                }}
-              >
-                {profile.rank}
-              </Text>
+            {/* Right: Global Rank */}
+            {profile.globalRank ? (
+              <View style={{ alignItems: "flex-end" }}>
+                <Text
+                  style={{
+                    color: onPlatformColor,
+                    fontWeight: "900",
+                    fontSize: 20,
+                  }}
+                >
+                  #{profile.globalRank.toLocaleString()}
+                </Text>
+                <Text
+                  style={{
+                    color: onPlatformColor,
+                    opacity: 0.7,
+                    fontSize: 10,
+                    fontWeight: "600",
+                    textTransform: "uppercase",
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  Global Rank
+                </Text>
+              </View>
             ) : null}
-
-            <Text
-              variant="bodyMedium"
-              style={{
-                color: onPlatformColor,
-                opacity: 0.7,
-                fontWeight: "600",
-                marginTop: 4,
-              }}
-            >
-              @{profile.username}
-            </Text>
           </View>
         </View>
 
@@ -211,8 +214,8 @@ export function ProfileDetailModal({
                   {
                     backgroundColor: colors.surface,
                     borderColor: dark
-                      ? "rgba(255,255,255,0.06)"
-                      : "rgba(0,0,0,0.04)",
+                      ? "rgba(255,255,255,0.12)"
+                      : "rgba(0,0,0,0.08)",
                   },
                 ]}
                 elevation={0}
@@ -283,37 +286,40 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 28,
-    position: "relative",
-    overflow: "hidden",
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 14,
   },
   closeButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     backgroundColor: "rgba(0,0,0,0.15)",
     alignItems: "center",
     justifyContent: "center",
     alignSelf: "flex-end",
   },
-  watermark: {
-    position: "absolute",
-    right: -20,
-    bottom: -20,
-    transform: [{ rotate: "-10deg" }],
-  },
-  headerContent: {
-    marginTop: 8,
-  },
-  platformBadge: {
+  profileRow: {
     flexDirection: "row",
     alignItems: "center",
-    alignSelf: "flex-start",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 8,
+    gap: 14,
+    marginTop: 8,
+  },
+  avatarCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  userInfo: {
+    flex: 1,
+  },
+  ratingBlock: {
+    marginTop: 14,
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
   },
   scrollContent: {
     paddingTop: 20,

@@ -1,220 +1,124 @@
 import {
-  MD3LightTheme,
-  MD3DarkTheme,
-  configureFonts,
+    MD3DarkTheme,
+    MD3LightTheme,
+    configureFonts,
 } from "react-native-paper";
-import { Platform } from "react-native";
+import { darkColors as customDark, lightColors as customLight } from "./colors";
+import { typography } from "./typography";
 
-// Font configuration
-const fontConfig = {
-  displayLarge: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 57,
-    fontWeight: "700",
-    letterSpacing: 0,
-    lineHeight: 64,
-  },
-  displayMedium: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 45,
-    fontWeight: "700",
-    letterSpacing: 0,
-    lineHeight: 52,
-  },
-  displaySmall: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 36,
-    fontWeight: "700",
-    letterSpacing: 0,
-    lineHeight: 44,
-  },
-  headlineLarge: {
-    fontFamily: "Inter_700Bold",
-    fontSize: 32,
-    fontWeight: "700",
-    letterSpacing: 0,
-    lineHeight: 40,
-  },
-  headlineMedium: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 28,
-    fontWeight: "600",
-    letterSpacing: 0,
-    lineHeight: 36,
-  },
-  headlineSmall: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 24,
-    fontWeight: "600",
-    letterSpacing: 0,
-    lineHeight: 32,
-  },
-  titleLarge: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 22,
-    fontWeight: "600",
-    letterSpacing: 0,
-    lineHeight: 28,
-  },
-  titleMedium: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 16,
-    fontWeight: "600",
-    letterSpacing: 0.15,
-    lineHeight: 24,
-  },
-  titleSmall: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 14,
-    fontWeight: "600",
-    letterSpacing: 0.1,
-    lineHeight: 20,
-  },
-  labelLarge: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 14,
-    fontWeight: "600",
-    letterSpacing: 0.1,
-    lineHeight: 20,
-  },
-  labelMedium: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 12,
-    fontWeight: "600",
-    letterSpacing: 0.5,
-    lineHeight: 16,
-  },
-  labelSmall: {
-    fontFamily: "Inter_600SemiBold",
-    fontSize: 11,
-    fontWeight: "600",
-    letterSpacing: 0.5,
-    lineHeight: 16,
-  },
-  bodyLarge: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 16,
-    fontWeight: "400",
-    letterSpacing: 0.15,
-    lineHeight: 24,
-  },
-  bodyMedium: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 14,
-    fontWeight: "400",
-    letterSpacing: 0.25,
-    lineHeight: 20,
-  },
-  bodySmall: {
-    fontFamily: "Inter_400Regular",
-    fontSize: 12,
-    fontWeight: "400",
-    letterSpacing: 0.4,
-    lineHeight: 16,
-  },
-  default: {
-    fontFamily: "Inter_400Regular",
-  },
-} as const;
-
-// Custom Teal/Cyan Palette (Material You Style)
+// Light: Clean white with black accent
 const lightColors = {
   ...MD3LightTheme.colors,
-  primary: "#006A6A",
+  primary: customLight.primary, // Black
   onPrimary: "#FFFFFF",
-  primaryContainer: "#6FF7F6",
-  onPrimaryContainer: "#002020",
-  secondary: "#4A6363",
+  primaryContainer: "#F4F4F5", // Zinc 100
+  onPrimaryContainer: "#09090B", // Zinc 950
+
+  secondary: customLight.secondary, // Zinc 600
   onSecondary: "#FFFFFF",
-  secondaryContainer: "#CCE8E7",
-  onSecondaryContainer: "#051F1F",
-  tertiary: "#4B607C",
+  secondaryContainer: "#F4F4F5",
+  onSecondaryContainer: "#52525B",
+
+  tertiary: customLight.accent, // Zinc 700
   onTertiary: "#FFFFFF",
-  tertiaryContainer: "#D3E4FF",
-  onTertiaryContainer: "#041C35",
-  error: "#BA1A1A",
+  tertiaryContainer: "#E4E4E7",
+  onTertiaryContainer: "#3F3F46",
+
+  error: customLight.status.error,
   onError: "#FFFFFF",
-  errorContainer: "#FFDAD6",
-  onErrorContainer: "#410002",
-  background: "#FAFDFC",
-  onBackground: "#191C1C",
-  surface: "#FAFDFC",
-  onSurface: "#191C1C",
-  surfaceVariant: "#DAE4E4",
-  onSurfaceVariant: "#3F4948",
-  outline: "#6F7979",
-  outlineVariant: "#BEC8C8",
-  shadow: "#000000",
+  errorContainer: "#FEE2E2",
+  onErrorContainer: "#991B1B",
+
+  background: customLight.background,
+  onBackground: customLight.text.primary,
+  surface: customLight.surface,
+  onSurface: customLight.text.primary,
+  surfaceVariant: customLight.surfaceHighlight,
+  onSurfaceVariant: customLight.text.secondary,
+
+  outline: customLight.border,
+  outlineVariant: "#E4E4E7",
+
+  shadow: "transparent",
   scrim: "#000000",
-  inverseSurface: "#2D3131",
-  inverseOnSurface: "#EFF1F0",
-  inversePrimary: "#4CDADA",
+  inverseSurface: "#18181B",
+  inverseOnSurface: "#FAFAFA",
+  inversePrimary: "#FAFAFA",
+
   elevation: {
     level0: "transparent",
-    level1: "#F0F5F4",
-    level2: "#EBF1F0",
-    level3: "#E5EDEC",
-    level4: "#E3ECEB",
-    level5: "#DFEAE9",
+    level1: "#FAFAFA",
+    level2: "#F4F4F5",
+    level3: "#E4E4E7",
+    level4: "#E4E4E7",
+    level5: "#D4D4D8",
   },
-  surfaceDisabled: "rgba(25, 28, 28, 0.12)",
-  onSurfaceDisabled: "rgba(25, 28, 28, 0.38)",
-  backdrop: "rgba(41, 50, 50, 0.4)",
+  surfaceDisabled: "rgba(0, 0, 0, 0.04)",
+  onSurfaceDisabled: "rgba(0, 0, 0, 0.38)",
+  backdrop: "rgba(0, 0, 0, 0.4)",
 };
 
+// Dark: Deep navy blue with white accent
 const darkColors = {
   ...MD3DarkTheme.colors,
-  primary: "#4CDADA",
-  onPrimary: "#003737",
-  primaryContainer: "#004F4F",
-  onPrimaryContainer: "#6FF7F6",
-  secondary: "#B0CCCB",
-  onSecondary: "#1B3434",
-  secondaryContainer: "#334B4B",
-  onSecondaryContainer: "#CCE8E7",
-  tertiary: "#B3C8E8",
-  onTertiary: "#1C314C",
-  tertiaryContainer: "#334863",
-  onTertiaryContainer: "#D3E4FF",
-  error: "#FFB4AB",
-  onError: "#690005",
-  errorContainer: "#93000A",
-  onErrorContainer: "#FFDAD6",
-  background: "#191C1C",
-  onBackground: "#E0E3E3",
-  surface: "#191C1C",
-  onSurface: "#E0E3E3",
-  surfaceVariant: "#3F4948",
-  onSurfaceVariant: "#BEC8C8",
-  outline: "#889392",
-  outlineVariant: "#3F4948",
-  shadow: "#000000",
+  primary: customDark.primary, // White
+  onPrimary: "#121212", // Charcoal
+  primaryContainer: "#2A2A2A",
+  onPrimaryContainer: "#FAFAFA",
+
+  secondary: customDark.secondary, // Slate 400
+  onSecondary: "#121212",
+  secondaryContainer: "#2A2A2A",
+  onSecondaryContainer: "#9E9E9E",
+
+  tertiary: customDark.accent, // Slate 300
+  onTertiary: "#121212",
+  tertiaryContainer: "#383838",
+  onTertiaryContainer: "#C0C0C0",
+
+  error: customDark.status.error,
+  onError: "#121212",
+  errorContainer: "#7F1D1D",
+  onErrorContainer: "#FECACA",
+
+  background: customDark.background,
+  onBackground: customDark.text.primary,
+  surface: customDark.surface,
+  onSurface: customDark.text.primary,
+  surfaceVariant: customDark.surfaceHighlight,
+  onSurfaceVariant: customDark.text.secondary,
+
+  outline: customDark.border,
+  outlineVariant: "#2A2A2A",
+
+  shadow: "transparent",
   scrim: "#000000",
-  inverseSurface: "#E0E3E3",
-  inverseOnSurface: "#2D3131",
-  inversePrimary: "#006A6A",
+  inverseSurface: "#FAFAFA",
+  inverseOnSurface: "#121212",
+  inversePrimary: "#121212",
+
   elevation: {
     level0: "transparent",
-    level1: "#1C2626",
-    level2: "#202C2C",
-    level3: "#263131",
-    level4: "#273333",
-    level5: "#2B3737",
+    level1: "#181818",
+    level2: "#1E1E1E",
+    level3: "#252525",
+    level4: "#252525",
+    level5: "#2E2E2E",
   },
-  surfaceDisabled: "rgba(224, 227, 227, 0.12)",
-  onSurfaceDisabled: "rgba(224, 227, 227, 0.38)",
-  backdrop: "rgba(41, 50, 50, 0.4)",
+  surfaceDisabled: "rgba(255, 255, 255, 0.04)",
+  onSurfaceDisabled: "rgba(255, 255, 255, 0.38)",
+  backdrop: "rgba(0, 0, 0, 0.5)",
 };
 
 export const theme = {
   light: {
     ...MD3LightTheme,
-    fonts: configureFonts({ config: fontConfig }),
+    fonts: configureFonts({ config: typography.fonts }),
     colors: lightColors,
   },
   dark: {
     ...MD3DarkTheme,
-    fonts: configureFonts({ config: fontConfig }),
+    fonts: configureFonts({ config: typography.fonts }),
     colors: darkColors,
   },
 };

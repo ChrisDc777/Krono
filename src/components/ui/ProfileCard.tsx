@@ -51,7 +51,7 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
     >
       <Surface
         style={[styles.card, { backgroundColor: platformColor }]}
-        elevation={4}
+        elevation={0}
       >
         {/* Watermark Icon - Fills spacing */}
         <View style={styles.watermarkContainer}>

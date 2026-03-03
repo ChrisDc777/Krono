@@ -77,7 +77,7 @@ export default function SettingsScreen() {
           <Text variant="titleMedium" style={styles.sectionTitle}>
             Appearance
           </Text>
-          <Card style={styles.card} mode="elevated" elevation={1}>
+          <Card style={styles.card} mode="contained">
             <List.Item
               title="Dark Mode"
               left={(props) => <List.Icon {...props} icon="theme-light-dark" />}
@@ -93,7 +93,7 @@ export default function SettingsScreen() {
           <Text variant="titleMedium" style={styles.sectionTitle}>
             Notifications
           </Text>
-          <Card style={styles.card} mode="elevated" elevation={1}>
+          <Card style={styles.card} mode="contained">
             <List.Item
               title="Enable Notifications"
               left={(props) => <List.Icon {...props} icon="bell-outline" />}
@@ -122,7 +122,7 @@ export default function SettingsScreen() {
           <Text variant="titleMedium" style={styles.sectionTitle}>
             Sync
           </Text>
-          <Card style={styles.card} mode="elevated" elevation={1}>
+          <Card style={styles.card} mode="contained">
             <List.Item
               title="Background Sync"
               description="Periodically fetch contests"
@@ -142,7 +142,7 @@ export default function SettingsScreen() {
           <Text variant="titleMedium" style={styles.sectionTitle}>
             Connected Profiles
           </Text>
-          <Surface style={styles.settingsCard} elevation={1}>
+          <Surface style={styles.settingsCard} elevation={0}>
             <View style={styles.profileList}>
               {profiles.length === 0 ? (
                 <Text
@@ -260,7 +260,7 @@ export default function SettingsScreen() {
           <Text variant="titleMedium" style={styles.sectionTitle}>
             About
           </Text>
-          <Card style={styles.card} mode="elevated" elevation={1}>
+          <Card style={styles.card} mode="contained">
             <List.Item
               title="Replay Walkthrough"
               description="See the intro guide again"
@@ -383,6 +383,8 @@ const styles = StyleSheet.create({
   settingsCard: {
     borderRadius: 16,
     overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.06)",
   },
   profileList: {
     padding: 0,

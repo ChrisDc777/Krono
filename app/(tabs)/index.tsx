@@ -153,29 +153,6 @@ export default function DashboardScreen() {
             />
           }
         >
-          {/* Greeting */}
-          <View style={styles.greeting}>
-            <Text
-              variant="headlineMedium"
-              style={{
-                fontWeight: "800",
-                color: colors.onSurface,
-                letterSpacing: -0.5,
-              }}
-            >
-              {getGreeting()} 👋
-            </Text>
-            <Text
-              variant="bodyMedium"
-              style={{
-                color: colors.onSurfaceVariant,
-                marginTop: 4,
-              }}
-            >
-              Here's your coding snapshot
-            </Text>
-          </View>
-
           {/* Profiles — tap a card to see detailed stats */}
           {profiles.length > 0 ? (
             <View style={styles.section}>
@@ -253,10 +230,16 @@ export default function DashboardScreen() {
                 style={[
                   styles.potdCard,
                   {
-                    backgroundColor: colors.surface,
+                    backgroundColor: dark
+                      ? colors.surfaceVariant
+                      : colors.surface,
                     borderColor: dark
                       ? "rgba(255,255,255,0.08)"
-                      : "rgba(0,0,0,0.05)",
+                      : "rgba(0,0,0,0.06)",
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: dark ? 0 : 0.04,
+                    shadowRadius: 8,
                   },
                 ]}
                 elevation={0}
@@ -330,17 +313,37 @@ export default function DashboardScreen() {
           {/* Live Now */}
           {ongoingContests.length > 0 && (
             <View style={styles.section}>
-              <Text
-                variant="labelMedium"
-                style={[
-                  styles.label,
-                  {
-                    color: "#EF4444",
-                  },
-                ]}
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  paddingHorizontal: 24,
+                  marginBottom: 14,
+                }}
               >
-                🔴 LIVE NOW
-              </Text>
+                <View
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: "#EF4444",
+                    marginRight: 8,
+                  }}
+                />
+                <Text
+                  variant="labelMedium"
+                  style={[
+                    styles.label,
+                    {
+                      color: "#EF4444",
+                      paddingHorizontal: 0,
+                      marginBottom: 0,
+                    },
+                  ]}
+                >
+                  LIVE NOW
+                </Text>
+              </View>
               <ContestList contests={ongoingContests} emptyMessage="" />
             </View>
           )}
@@ -395,8 +398,12 @@ const styles = StyleSheet.create({
   },
   greeting: {
     paddingHorizontal: 24,
-    paddingTop: 4,
+    paddingTop: 16,
     paddingBottom: 28,
+    marginHorizontal: 16,
+    marginBottom: 12,
+    borderRadius: 20,
+    borderWidth: 1,
   },
   section: {
     marginBottom: 32,
@@ -440,6 +447,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1,
     overflow: "hidden",
+    elevation: 0,
   },
   potdBrand: {
     flexDirection: "row",

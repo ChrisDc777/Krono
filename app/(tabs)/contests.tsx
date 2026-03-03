@@ -3,6 +3,7 @@ import { format, isSameDay, isTomorrow } from "date-fns";
 import React, { useEffect, useMemo, useState } from "react";
 import {
     Linking,
+    Pressable,
     RefreshControl,
     ScrollView,
     SectionList,
@@ -26,8 +27,13 @@ import { PLATFORMS, PlatformId } from "../../src/types/platform";
 export default function ContestsScreen() {
   const { colors, dark } = useTheme();
   const isDarkMode = dark;
-  const { upcomingContests, loadContests, syncContests, isLoading } =
-    useContestStore();
+  const {
+    upcomingContests,
+    loadContests,
+    syncContests,
+    isLoading,
+    toggleReminder,
+  } = useContestStore();
   const [refreshing, setRefreshing] = useState(false);
   const [selectedPlatform, setSelectedPlatform] = useState<PlatformId | "all">(
     "all",
@@ -123,29 +129,16 @@ export default function ContestsScreen() {
           {
             backgroundColor: colors.surface,
             borderColor: isDarkMode
-              ? "rgba(255,255,255,0.15)"
-              : "rgba(0,0,0,0.05)",
+              ? "rgba(255,255,255,0.12)"
+              : "rgba(0,0,0,0.08)",
           },
         ]}
-        elevation={2}
+        elevation={0}
       >
         {/* Left Tint Bar */}
         <View style={[styles.tintBar, { backgroundColor: platformColor }]} />
 
-        {/* Watermark - Small for list view */}
-        <View style={styles.watermarkContainer}>
-          <MaterialCommunityIcons
-            name={(platformConfig?.icon as any) || "trophy-outline"}
-            size={60}
-            color={platformColor}
-            style={{ opacity: 0.05 }}
-          />
-        </View>
-
-        <View
-          style={styles.contentContainer}
-          onTouchEnd={() => item.url && Linking.openURL(item.url)}
-        >
+        <View style={styles.contentContainer}>
           <View style={{ flex: 1, gap: 4 }}>
             {/* Header Row */}
             <View style={styles.row}>
@@ -172,7 +165,7 @@ export default function ContestsScreen() {
                   {item.platformId}
                 </Text>
               </View>
-              <Text variant="labelSmall" style={{ color: colors.outline }}>
+              <Text variant="labelSmall" style={{ color: colors.secondary }}>
                 {format(startDate, "HH:mm")}
               </Text>
             </View>
@@ -186,7 +179,7 @@ export default function ContestsScreen() {
             </Text>
           </View>
 
-          {/* Right Side: Duration Pill */}
+          {/* Duration */}
           <View style={styles.durationPill}>
             <MaterialCommunityIcons
               name="clock-outline"
@@ -204,6 +197,71 @@ export default function ContestsScreen() {
               {durationText}
             </Text>
           </View>
+
+          {/* Action Bar */}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 10,
+              marginTop: 10,
+              paddingTop: 10,
+              borderTopWidth: 1,
+              borderTopColor: isDarkMode
+                ? "rgba(255,255,255,0.06)"
+                : "rgba(0,0,0,0.05)",
+            }}
+          >
+            <Pressable
+              style={{
+                flex: 1,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                paddingVertical: 9,
+                borderRadius: 10,
+                backgroundColor: colors.primary,
+              }}
+              onPress={() => item.url && Linking.openURL(item.url)}
+            >
+              <MaterialCommunityIcons
+                name="open-in-new"
+                size={13}
+                color={colors.onPrimary}
+              />
+              <Text
+                style={{
+                  color: colors.onPrimary,
+                  fontSize: 12,
+                  fontWeight: "700",
+                  marginLeft: 5,
+                }}
+              >
+                Register Now
+              </Text>
+            </Pressable>
+            <Pressable
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: 10,
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: item.reminderSet
+                  ? colors.primary + "15"
+                  : colors.surfaceVariant,
+              }}
+              onPress={() => toggleReminder(item.id, !item.reminderSet)}
+            >
+              <MaterialCommunityIcons
+                name={item.reminderSet ? "bell-ring" : "bell-outline"}
+                size={16}
+                color={
+                  item.reminderSet ? colors.primary : colors.onSurfaceVariant
+                }
+              />
+            </Pressable>
+          </View>
         </View>
       </Surface>
     );
@@ -214,9 +272,7 @@ export default function ContestsScreen() {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <Appbar.Header
-          elevated
-          mode="center-aligned"
-          style={{ backgroundColor: colors.surface }}
+          style={{ backgroundColor: colors.surface, elevation: 0 }}
         >
           <Appbar.Content
             title="Schedule"
@@ -232,9 +288,7 @@ export default function ContestsScreen() {
     <ErrorBoundary fallbackTitle="Contests Error">
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <Appbar.Header
-          elevated
-          mode="center-aligned"
-          style={{ backgroundColor: colors.surface }}
+          style={{ backgroundColor: colors.surface, elevation: 0 }}
         >
           <Appbar.Content
             title="Schedule"
@@ -403,12 +457,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: "hidden",
     position: "relative",
-    borderWidth: 1, // Start border width
-    // Shadow
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    borderWidth: 1,
   },
   tintBar: {
     position: "absolute",
@@ -418,19 +467,9 @@ const styles = StyleSheet.create({
     width: 4,
     zIndex: 2,
   },
-  watermarkContainer: {
-    position: "absolute",
-    right: -10,
-    bottom: -10,
-    zIndex: 1,
-    transform: [{ rotate: "-10deg" }],
-  },
   contentContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 12,
-    paddingLeft: 18, // Space for tint bar
-    gap: 12,
+    padding: 14,
+    paddingLeft: 18,
     zIndex: 2,
   },
   row: {

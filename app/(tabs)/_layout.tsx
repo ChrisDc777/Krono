@@ -15,10 +15,12 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopColor: colors.border,
-          height: 60 + (Platform.OS === 'android' ? 0 : insets.bottom), // Android handles navbar differently often, but let's be safe
-          paddingBottom: 8 + (Platform.OS === 'android' ? 4 : insets.bottom), // Add extra padding for android nav bar
+          borderTopWidth: 1,
+          height: 60 + (Platform.OS === "android" ? 0 : insets.bottom),
+          paddingBottom: 8 + (Platform.OS === "android" ? 4 : insets.bottom),
           paddingTop: 8,
-          elevation: 4,
+          elevation: 0,
+          shadowOpacity: 0,
         },
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.text.muted,

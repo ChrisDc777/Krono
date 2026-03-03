@@ -2,13 +2,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { format } from "date-fns";
 import React from "react";
 import { Linking, Pressable, StyleSheet, View } from "react-native";
-import {
-    ActivityIndicator,
-    IconButton,
-    Surface,
-    Text,
-    useTheme,
-} from "react-native-paper";
+import { ActivityIndicator, Surface, Text, useTheme } from "react-native-paper";
 import { useContestStore } from "../../stores/useContestStore";
 import { Contest } from "../../types/contest";
 import { PLATFORMS } from "../../types/platform";
@@ -88,33 +82,23 @@ export const ContestList: React.FC<ContestListProps> = ({
               styles.card,
               {
                 backgroundColor: colors.surface,
-                borderColor: isDarkMode
-                  ? "rgba(255,255,255,0.15)"
-                  : "rgba(0,0,0,0.05)",
+                borderColor: dark
+                  ? "rgba(255,255,255,0.12)"
+                  : "rgba(0,0,0,0.08)",
               },
             ]}
-            elevation={1}
+            elevation={0}
             mode="flat"
           >
             {/* Left Tint Bar */}
             <View
-              style={[styles.tintBar, { backgroundColor: platformColor }]}
+              style={[
+                styles.tintBar,
+                { backgroundColor: platformColor, opacity: 0.8 },
+              ]}
             />
 
-            {/* Watermark */}
-            <View style={styles.watermarkContainer}>
-              <MaterialCommunityIcons
-                name={(platformConfig?.icon as any) || "trophy-outline"}
-                size={80}
-                color={platformColor}
-                style={{ opacity: 0.05 }}
-              />
-            </View>
-
-            <Pressable
-              style={styles.contentContainer}
-              onPress={() => contest.url && Linking.openURL(contest.url)}
-            >
+            <View style={styles.contentContainer}>
               {/* Header: Platform & Date */}
               <View style={styles.row}>
                 <View
@@ -140,7 +124,7 @@ export const ContestList: React.FC<ContestListProps> = ({
                     {contest.platformId}
                   </Text>
                 </View>
-                <Text variant="labelSmall" style={{ color: colors.outline }}>
+                <Text variant="labelSmall" style={{ color: colors.secondary }}>
                   {format(startTime, "MMM d, HH:mm")}
                 </Text>
               </View>
@@ -177,19 +161,67 @@ export const ContestList: React.FC<ContestListProps> = ({
                     {durationText}
                   </Text>
                 </View>
+              </View>
 
-                <IconButton
-                  icon={contest.reminderSet ? "bell-ring" : "bell-outline"}
-                  iconColor={
-                    contest.reminderSet ? colors.primary : colors.outline
-                  }
-                  size={20}
+              {/* Action Bar */}
+              <View
+                style={[
+                  styles.actionBar,
+                  {
+                    borderTopColor: dark
+                      ? "rgba(255,255,255,0.06)"
+                      : "rgba(0,0,0,0.05)",
+                  },
+                ]}
+              >
+                <Pressable
+                  style={[
+                    styles.registerBtn,
+                    { backgroundColor: colors.primary },
+                  ]}
+                  onPress={() => contest.url && Linking.openURL(contest.url)}
+                >
+                  <MaterialCommunityIcons
+                    name="open-in-new"
+                    size={14}
+                    color={colors.onPrimary}
+                  />
+                  <Text
+                    style={{
+                      color: colors.onPrimary,
+                      fontSize: 13,
+                      fontWeight: "700",
+                      marginLeft: 6,
+                    }}
+                  >
+                    Register Now
+                  </Text>
+                </Pressable>
+                <Pressable
+                  style={[
+                    styles.reminderBtn,
+                    {
+                      backgroundColor: contest.reminderSet
+                        ? colors.primary + "15"
+                        : colors.surfaceVariant,
+                    },
+                  ]}
                   onPress={() =>
                     toggleReminder(contest.id, !contest.reminderSet)
                   }
-                />
+                >
+                  <MaterialCommunityIcons
+                    name={contest.reminderSet ? "bell-ring" : "bell-outline"}
+                    size={18}
+                    color={
+                      contest.reminderSet
+                        ? colors.primary
+                        : colors.onSurfaceVariant
+                    }
+                  />
+                </Pressable>
               </View>
-            </Pressable>
+            </View>
           </Surface>
         );
       })}
@@ -207,16 +239,6 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     position: "relative",
     borderWidth: 1,
-    borderColor: "rgba(0,0,0,0.05)", // Subtle border
-    // Shadow for iOS/Android
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.06,
-    shadowRadius: 3,
-    elevation: 1,
     marginBottom: 0,
   },
   tintBar: {
@@ -224,19 +246,12 @@ const styles = StyleSheet.create({
     left: 0,
     top: 0,
     bottom: 0,
-    width: 6,
+    width: 4,
     zIndex: 2,
-  },
-  watermarkContainer: {
-    position: "absolute",
-    right: -10,
-    bottom: -15,
-    zIndex: 1,
-    transform: [{ rotate: "-10deg" }],
   },
   contentContainer: {
     padding: 16,
-    paddingLeft: 22, // Space for tint bar
+    paddingLeft: 20,
     zIndex: 2,
   },
   row: {
@@ -262,5 +277,28 @@ const styles = StyleSheet.create({
   emptyContainer: {
     paddingVertical: 20,
     alignItems: "center",
+  },
+  actionBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+  },
+  registerBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  reminderBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

@@ -231,14 +231,14 @@ export const ContestList: React.FC<ContestListProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    gap: 12,
-    paddingHorizontal: 24,
+    gap: 16,
+    paddingHorizontal: 20,
   },
   card: {
     borderRadius: 16,
     overflow: "hidden",
     position: "relative",
-    borderWidth: 1,
+    borderWidth: 1.5,
     marginBottom: 0,
   },
   tintBar: {

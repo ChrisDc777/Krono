@@ -66,17 +66,52 @@ export default function SettingsScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Appbar.Header
-        style={{ backgroundColor: colors.background, elevation: 0 }}
+        style={{
+          backgroundColor: isDarkMode ? "transparent" : "#fff",
+          elevation: 0,
+          height: 54,
+        }}
       >
-        <Appbar.Content title="Settings" titleStyle={{ fontWeight: "800" }} />
+        <Appbar.Content
+          title="Settings"
+          titleStyle={{
+            fontWeight: "900",
+            fontSize: 28,
+            letterSpacing: -1,
+            color: colors.onSurface,
+          }}
+        />
       </Appbar.Header>
 
       <ScrollView contentContainerStyle={styles.content}>
         {/* Appearance */}
         <View style={styles.sectionContainer}>
-          <Text variant="titleMedium" style={styles.sectionTitle}>
-            Appearance
-          </Text>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 10,
+              marginBottom: 16,
+            }}
+          >
+            <View
+              style={{
+                width: 4,
+                height: 18,
+                borderRadius: 2,
+                backgroundColor: colors.primary,
+              }}
+            />
+            <Text
+              variant="titleMedium"
+              style={{
+                fontWeight: "800",
+                color: colors.onSurface,
+              }}
+            >
+              Appearance
+            </Text>
+          </View>
           <Card style={styles.card} mode="contained">
             <List.Item
               title="Dark Mode"
@@ -90,9 +125,32 @@ export default function SettingsScreen() {
 
         {/* Notifications */}
         <View style={styles.sectionContainer}>
-          <Text variant="titleMedium" style={styles.sectionTitle}>
-            Notifications
-          </Text>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 10,
+              marginBottom: 16,
+            }}
+          >
+            <View
+              style={{
+                width: 4,
+                height: 18,
+                borderRadius: 2,
+                backgroundColor: colors.primary,
+              }}
+            />
+            <Text
+              variant="titleMedium"
+              style={{
+                fontWeight: "800",
+                color: colors.onSurface,
+              }}
+            >
+              Notifications
+            </Text>
+          </View>
           <Card style={styles.card} mode="contained">
             <List.Item
               title="Enable Notifications"
@@ -119,9 +177,32 @@ export default function SettingsScreen() {
 
         {/* Sync */}
         <View style={styles.sectionContainer}>
-          <Text variant="titleMedium" style={styles.sectionTitle}>
-            Sync
-          </Text>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 10,
+              marginBottom: 16,
+            }}
+          >
+            <View
+              style={{
+                width: 4,
+                height: 18,
+                borderRadius: 2,
+                backgroundColor: colors.primary,
+              }}
+            />
+            <Text
+              variant="titleMedium"
+              style={{
+                fontWeight: "800",
+                color: colors.onSurface,
+              }}
+            >
+              Sync
+            </Text>
+          </View>
           <Card style={styles.card} mode="contained">
             <List.Item
               title="Background Sync"
@@ -139,9 +220,32 @@ export default function SettingsScreen() {
 
         {/* Connected Profiles */}
         <View style={styles.sectionContainer}>
-          <Text variant="titleMedium" style={styles.sectionTitle}>
-            Connected Profiles
-          </Text>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 10,
+              marginBottom: 16,
+            }}
+          >
+            <View
+              style={{
+                width: 4,
+                height: 18,
+                borderRadius: 2,
+                backgroundColor: colors.primary,
+              }}
+            />
+            <Text
+              variant="titleMedium"
+              style={{
+                fontWeight: "800",
+                color: colors.onSurface,
+              }}
+            >
+              Connected Profiles
+            </Text>
+          </View>
           <Surface style={styles.settingsCard} elevation={0}>
             <View style={styles.profileList}>
               {profiles.length === 0 ? (
@@ -332,7 +436,7 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingBottom: 40,
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
     paddingTop: 8,
   },
   card: {

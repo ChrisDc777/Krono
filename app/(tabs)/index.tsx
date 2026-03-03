@@ -109,11 +109,20 @@ export default function DashboardScreen() {
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <Appbar.Header
           style={{
-            backgroundColor: colors.background,
+            backgroundColor: dark ? "transparent" : "#fff",
             elevation: 0,
+            height: 48,
           }}
         >
-          <Appbar.Content title="" />
+          <Appbar.Content
+            title="Krono"
+            titleStyle={{
+              fontWeight: "900",
+              fontSize: 22,
+              letterSpacing: -0.5,
+              color: colors.onSurface,
+            }}
+          />
           <Appbar.Action
             icon="cog-outline"
             onPress={() => router.push("/settings")}
@@ -127,14 +136,22 @@ export default function DashboardScreen() {
   return (
     <ErrorBoundary fallbackTitle="Dashboard Error">
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        {/* Transparent header — only settings icon */}
         <Appbar.Header
           style={{
-            backgroundColor: colors.background,
+            backgroundColor: dark ? "transparent" : "#fff",
             elevation: 0,
+            height: 48,
           }}
         >
-          <Appbar.Content title="" />
+          <Appbar.Content
+            title="Krono"
+            titleStyle={{
+              fontWeight: "900",
+              fontSize: 26,
+              letterSpacing: -1,
+              color: colors.onSurface,
+            }}
+          />
           <Appbar.Action
             icon="cog-outline"
             onPress={() => router.push("/settings")}
@@ -156,12 +173,35 @@ export default function DashboardScreen() {
           {/* Profiles — tap a card to see detailed stats */}
           {profiles.length > 0 ? (
             <View style={styles.section}>
-              <Text
-                variant="labelMedium"
-                style={[styles.label, { color: colors.onSurfaceVariant }]}
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 6,
+                  paddingHorizontal: 24,
+                  marginBottom: 14,
+                }}
               >
-                YOUR PROFILES
-              </Text>
+                <View
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: 3,
+                    backgroundColor: colors.primary,
+                  }}
+                />
+                <Text
+                  variant="labelMedium"
+                  style={{
+                    fontWeight: "700",
+                    letterSpacing: 0.8,
+                    fontSize: 11,
+                    color: colors.onSurfaceVariant,
+                  }}
+                >
+                  YOUR PROFILES
+                </Text>
+              </View>
               <ProfileCarousel profiles={profiles} />
             </View>
           ) : (
@@ -172,8 +212,9 @@ export default function DashboardScreen() {
                   {
                     backgroundColor: colors.surface,
                     borderColor: dark
-                      ? "rgba(255,255,255,0.08)"
-                      : "rgba(0,0,0,0.06)",
+                      ? "rgba(255,255,255,0.12)"
+                      : "rgba(0,0,0,0.08)",
+                    borderStyle: "dashed",
                   },
                 ]}
                 elevation={0}
@@ -218,12 +259,33 @@ export default function DashboardScreen() {
 
           {/* Daily Challenge */}
           <View style={styles.section}>
-            <Text
-              variant="labelMedium"
-              style={[styles.label, { color: colors.onSurfaceVariant }]}
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 10,
+                paddingHorizontal: 20,
+                marginBottom: 16,
+              }}
             >
-              DAILY CHALLENGE
-            </Text>
+              <View
+                style={{
+                  width: 4,
+                  height: 18,
+                  borderRadius: 2,
+                  backgroundColor: "#FFA116",
+                }}
+              />
+              <Text
+                variant="titleMedium"
+                style={{
+                  fontWeight: "800",
+                  color: colors.onSurface,
+                }}
+              >
+                Daily Challenge
+              </Text>
+            </View>
             <View style={{ paddingHorizontal: 24 }}>
               {/* LeetCode */}
               <Surface
@@ -311,31 +373,27 @@ export default function DashboardScreen() {
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
-                  paddingHorizontal: 24,
-                  marginBottom: 14,
+                  gap: 8,
+                  paddingHorizontal: 20,
+                  marginBottom: 16,
                 }}
               >
                 <View
                   style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: 4,
+                    width: 4,
+                    height: 18,
+                    borderRadius: 2,
                     backgroundColor: "#EF4444",
-                    marginRight: 8,
                   }}
                 />
                 <Text
-                  variant="labelMedium"
-                  style={[
-                    styles.label,
-                    {
-                      color: "#EF4444",
-                      paddingHorizontal: 0,
-                      marginBottom: 0,
-                    },
-                  ]}
+                  variant="titleMedium"
+                  style={{
+                    fontWeight: "800",
+                    color: "#EF4444",
+                  }}
                 >
-                  LIVE NOW
+                  Live Now
                 </Text>
               </View>
               <ContestList contests={ongoingContests} emptyMessage="" />
@@ -344,19 +402,32 @@ export default function DashboardScreen() {
 
           {/* Upcoming Contests */}
           <View style={styles.section}>
-            <View style={styles.labelRow}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 10,
+                paddingHorizontal: 20,
+                marginBottom: 16,
+              }}
+            >
+              <View
+                style={{
+                  width: 4,
+                  height: 18,
+                  borderRadius: 2,
+                  backgroundColor: colors.primary,
+                }}
+              />
               <Text
-                variant="labelMedium"
-                style={[
-                  styles.label,
-                  {
-                    color: colors.onSurfaceVariant,
-                    flex: 1,
-                    marginBottom: 0,
-                  },
-                ]}
+                variant="titleMedium"
+                style={{
+                  fontWeight: "800",
+                  color: colors.onSurface,
+                  flex: 1,
+                }}
               >
-                UPCOMING CONTESTS
+                Upcoming Contests
               </Text>
               {upcomingOnly.length > 3 && (
                 <Text

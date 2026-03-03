@@ -100,25 +100,11 @@ export function ProfileDetailModal({
           styles.container,
           {
             backgroundColor: colors.background,
-            paddingTop: insets.top,
           },
         ]}
       >
         {/* Header — full platform color */}
         <View style={[styles.header, { backgroundColor: platformColor }]}>
-          {/* Close button top-right */}
-          <Pressable
-            onPress={onDismiss}
-            style={styles.closeButton}
-            hitSlop={12}
-          >
-            <MaterialCommunityIcons
-              name="close"
-              size={18}
-              color={onPlatformColor}
-            />
-          </Pressable>
-
           {/* Profile Row */}
           <View style={styles.profileRow}>
             {/* Left: Icon + Username + Rank */}
@@ -170,32 +156,48 @@ export function ProfileDetailModal({
               </View>
             </View>
 
-            {/* Right: Global Rank */}
-            {profile.globalRank ? (
-              <View style={{ alignItems: "flex-end" }}>
-                <Text
-                  style={{
-                    color: onPlatformColor,
-                    fontWeight: "900",
-                    fontSize: 20,
-                  }}
-                >
-                  #{profile.globalRank.toLocaleString()}
-                </Text>
-                <Text
-                  style={{
-                    color: onPlatformColor,
-                    opacity: 0.7,
-                    fontSize: 10,
-                    fontWeight: "600",
-                    textTransform: "uppercase",
-                    letterSpacing: 0.5,
-                  }}
-                >
-                  Global Rank
-                </Text>
-              </View>
-            ) : null}
+            {/* Right: Close button and optional Global Rank */}
+            <View
+              style={{ alignItems: "flex-end", justifyContent: "flex-start" }}
+            >
+              <Pressable
+                onPress={onDismiss}
+                style={styles.closeButton}
+                hitSlop={12}
+              >
+                <MaterialCommunityIcons
+                  name="close"
+                  size={18}
+                  color={onPlatformColor}
+                />
+              </Pressable>
+
+              {profile.globalRank ? (
+                <View style={{ alignItems: "flex-end", marginTop: 8 }}>
+                  <Text
+                    style={{
+                      color: onPlatformColor,
+                      fontWeight: "900",
+                      fontSize: 16,
+                    }}
+                  >
+                    #{profile.globalRank.toLocaleString()}
+                  </Text>
+                  <Text
+                    style={{
+                      color: onPlatformColor,
+                      opacity: 0.7,
+                      fontSize: 10,
+                      fontWeight: "600",
+                      textTransform: "uppercase",
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    Global Rank
+                  </Text>
+                </View>
+              ) : null}
+            </View>
           </View>
         </View>
 
@@ -212,41 +214,53 @@ export function ProfileDetailModal({
                 style={[
                   styles.statCard,
                   {
-                    backgroundColor: colors.surface,
+                    backgroundColor: dark
+                      ? "rgba(255,255,255,0.03)"
+                      : "rgba(0,0,0,0.02)",
                     borderColor: dark
-                      ? "rgba(255,255,255,0.12)"
-                      : "rgba(0,0,0,0.08)",
+                      ? "rgba(255,255,255,0.08)"
+                      : "rgba(0,0,0,0.05)",
                   },
                 ]}
                 elevation={0}
               >
-                <MaterialCommunityIcons
-                  name={stat.icon}
-                  size={18}
-                  color={colors.onSurfaceVariant}
-                  style={{ marginBottom: 6 }}
-                />
-                <Text
-                  variant="titleLarge"
-                  style={{
-                    fontWeight: "800",
-                    color: colors.onSurface,
-                  }}
+                <View
+                  style={[
+                    styles.statIconWrapper,
+                    { backgroundColor: colors.surfaceVariant },
+                  ]}
                 >
-                  {stat.value}
-                </Text>
-                <Text
-                  variant="labelSmall"
-                  style={{
-                    color: colors.onSurfaceVariant,
-                    marginTop: 2,
-                    textTransform: "uppercase",
-                    fontSize: 9,
-                    letterSpacing: 0.5,
-                  }}
-                >
-                  {stat.label}
-                </Text>
+                  <MaterialCommunityIcons
+                    name={stat.icon}
+                    size={20}
+                    color={colors.primary}
+                  />
+                </View>
+                <View style={styles.statContent}>
+                  <Text
+                    variant="labelSmall"
+                    style={{
+                      color: colors.onSurfaceVariant,
+                      textTransform: "uppercase",
+                      fontSize: 10,
+                      fontWeight: "700",
+                      letterSpacing: 0.5,
+                      marginBottom: 2,
+                    }}
+                  >
+                    {stat.label}
+                  </Text>
+                  <Text
+                    variant="titleLarge"
+                    style={{
+                      fontWeight: "900",
+                      color: colors.onSurface,
+                      letterSpacing: -0.5,
+                    }}
+                  >
+                    {stat.value}
+                  </Text>
+                </View>
               </Surface>
             ))}
           </View>
@@ -287,8 +301,9 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 14,
+    paddingTop: 16,
+    paddingBottom: 20,
+    position: "relative",
   },
   closeButton: {
     width: 30,
@@ -297,13 +312,12 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.15)",
     alignItems: "center",
     justifyContent: "center",
-    alignSelf: "flex-end",
   },
   profileRow: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: 14,
-    marginTop: 8,
+    marginTop: 0,
   },
   avatarCircle: {
     width: 44,
@@ -327,15 +341,27 @@ const styles = StyleSheet.create({
   statsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    paddingHorizontal: 24,
-    gap: 10,
+    paddingHorizontal: 20,
+    gap: 12,
   },
   statCard: {
-    width: (Dimensions.get("window").width - 48 - 10) / 2 - 1,
+    width: (Dimensions.get("window").width - 40 - 12) / 2,
     padding: 16,
-    borderRadius: 14,
+    borderRadius: 16,
     borderWidth: 1,
+    flexDirection: "column",
+    alignItems: "flex-start",
+  },
+  statIconWrapper: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+  },
+  statContent: {
+    alignItems: "flex-start",
   },
   chartSection: {
     marginTop: 28,

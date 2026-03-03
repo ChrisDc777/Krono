@@ -272,11 +272,20 @@ export default function ContestsScreen() {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <Appbar.Header
-          style={{ backgroundColor: colors.surface, elevation: 0 }}
+          style={{
+            backgroundColor: dark ? "transparent" : "#fff",
+            elevation: 0,
+            height: 54,
+          }}
         >
           <Appbar.Content
             title="Schedule"
-            titleStyle={{ fontWeight: "bold" }}
+            titleStyle={{
+              fontWeight: "900",
+              fontSize: 28,
+              letterSpacing: -1,
+              color: colors.onSurface,
+            }}
           />
         </Appbar.Header>
         <ContestsSkeleton />
@@ -288,11 +297,20 @@ export default function ContestsScreen() {
     <ErrorBoundary fallbackTitle="Contests Error">
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <Appbar.Header
-          style={{ backgroundColor: colors.surface, elevation: 0 }}
+          style={{
+            backgroundColor: dark ? "transparent" : "#fff",
+            elevation: 0,
+            height: 54,
+          }}
         >
           <Appbar.Content
             title="Schedule"
-            titleStyle={{ fontWeight: "bold" }}
+            titleStyle={{
+              fontWeight: "900",
+              fontSize: 28,
+              letterSpacing: -1,
+              color: colors.onSurface,
+            }}
           />
         </Appbar.Header>
 
@@ -362,18 +380,33 @@ export default function ContestsScreen() {
           renderItem={renderContestItem}
           renderSectionHeader={({ section: { title } }) => (
             <View
-              style={[
-                styles.sectionHeader,
-                { backgroundColor: colors.background },
-              ]}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 10,
+                paddingHorizontal: 20,
+                paddingTop: 16,
+                paddingBottom: 12,
+                backgroundColor: colors.background,
+              }}
             >
-              <Text
-                variant="labelLarge"
+              <View
                 style={{
-                  color: colors.outline,
-                  fontWeight: "700",
-                  textTransform: "uppercase",
-                  letterSpacing: 1,
+                  width: 4,
+                  height: 18,
+                  borderRadius: 2,
+                  backgroundColor: title.includes("Live Now")
+                    ? "#EF4444"
+                    : colors.primary,
+                }}
+              />
+              <Text
+                variant="titleMedium"
+                style={{
+                  color: title.includes("Live Now")
+                    ? "#EF4444"
+                    : colors.onSurface,
+                  fontWeight: "800",
                 }}
               >
                 {title}
@@ -445,7 +478,8 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 20,
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
+    gap: 16,
   },
   sectionHeader: {
     paddingVertical: 12,
@@ -453,11 +487,10 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   card: {
-    marginBottom: 12,
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: "hidden",
     position: "relative",
-    borderWidth: 1,
+    borderWidth: 1.5,
   },
   tintBar: {
     position: "absolute",

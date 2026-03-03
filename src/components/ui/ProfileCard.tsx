@@ -183,9 +183,9 @@ export const ProfileCard: React.FC<ProfileCardProps> = ({
 
 const styles = StyleSheet.create({
   card: {
-    width: 280, // Slightly narrower for better carousel feel
-    height: 180, // Compact height
-    borderRadius: 24,
+    width: 280,
+    height: 190,
+    borderRadius: 20,
     marginRight: 0,
     borderWidth: 0, // Remove border for cleaner look
     overflow: "hidden", // Ensure background doesn't bleed

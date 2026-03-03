@@ -48,7 +48,7 @@ export const lightColors = {
 export const darkColors = {
   background: "#0D0D0D", // Near black
   surface: "#1C1C1E", // Card surface — clearly lighter
-  surfaceHighlight: "#2C2C2E", // Badges, pills
+  surfaceHighlight: "#2C2C2E",
   border: "#3A3A3C", // Subtle border
 
   primary: "#FAFAFA", // White accent
@@ -75,5 +75,4 @@ export const darkColors = {
   isDark: true,
 };
 
-// Default export for backwards compatibility
 export const colors = lightColors;

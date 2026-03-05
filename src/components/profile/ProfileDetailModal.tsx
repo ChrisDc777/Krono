@@ -104,12 +104,7 @@ export function ProfileDetailModal({
         ]}
       >
         {/* Header — full platform color */}
-        <View
-          style={[
-            styles.header,
-            { backgroundColor: platformColor, paddingTop: insets.top + 16 },
-          ]}
-        >
+        <View style={[styles.header, { backgroundColor: platformColor }]}>
           {/* Profile Row */}
           <View style={styles.profileRow}>
             {/* Left: Icon + Username + Rank */}
@@ -124,7 +119,10 @@ export function ProfileDetailModal({
               <View
                 style={[
                   styles.avatarCircle,
-                  { backgroundColor: "rgba(255,255,255,0.2)" },
+                  {
+                    backgroundColor: "rgba(255,255,255,0.2)",
+                    alignSelf: "center",
+                  },
                 ]}
               >
                 <MaterialCommunityIcons
@@ -133,7 +131,7 @@ export function ProfileDetailModal({
                   color={onPlatformColor}
                 />
               </View>
-              <View style={{ flex: 1 }}>
+              <View style={{ flex: 1, justifyContent: "center" }}>
                 <Text
                   style={{
                     fontWeight: "800",
@@ -163,7 +161,11 @@ export function ProfileDetailModal({
 
             {/* Right: Close button and optional Global Rank */}
             <View
-              style={{ alignItems: "flex-end", justifyContent: "flex-start" }}
+              style={{
+                alignItems: "flex-end",
+                justifyContent: "center",
+                gap: 4,
+              }}
             >
               <Pressable
                 onPress={onDismiss}
@@ -306,9 +308,8 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 20,
-    position: "relative",
+    paddingTop: 14,
+    paddingBottom: 14,
   },
   closeButton: {
     width: 30,
@@ -320,7 +321,7 @@ const styles = StyleSheet.create({
   },
   profileRow: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
     gap: 14,
     marginTop: 0,
   },

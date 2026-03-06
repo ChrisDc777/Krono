@@ -104,7 +104,12 @@ export function ProfileDetailModal({
         ]}
       >
         {/* Header — full platform color */}
-        <View style={[styles.header, { backgroundColor: platformColor }]}>
+        <View
+          style={[
+            styles.header,
+            { backgroundColor: platformColor, paddingTop: insets.top + 8 },
+          ]}
+        >
           {/* Profile Row */}
           <View style={styles.profileRow}>
             {/* Left: Icon + Username + Rank */}
